@@ -1,8 +1,8 @@
 #include <jni.h>
 #include "react-native-opaque.h"
 
-extern "C"
-JNIEXPORT jint JNICALL
-Java_com_opaque_OpaqueModule_nativeMultiply(JNIEnv *env, jclass type, jdouble a, jdouble b) {
-    return opaque::multiply(a, b);
+extern "C" JNIEXPORT void JNICALL
+Java_com_opaque_OpaqueModule_initialize(JNIEnv *env, jclass clazz, jlong jsiPtr, jstring docPath)
+{
+    installOpaque(*reinterpret_cast<facebook::jsi::Runtime *>(jsiPtr));
 }

@@ -6,6 +6,7 @@ import { multiply } from 'react-native-opaque';
 export default function App() {
   return (
     <View style={styles.container}>
+      <Text>Result: none</Text>
       <Text>Result: {multiply(22)}</Text>
     </View>
   );
