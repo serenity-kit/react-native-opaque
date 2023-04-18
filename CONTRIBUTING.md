@@ -28,6 +28,13 @@ To run the example app on Android:
 yarn example android
 ```
 
+You need the emulator to run beforehand. This can be done using:
+
+```sh
+emulator -list-avds
+emulator -adv <name_from_the_list>
+```
+
 To run the example app on iOS:
 
 ```sh
@@ -56,7 +63,6 @@ yarn test
 To edit the Objective-C or Swift files, open `example/ios/OpaqueExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > react-native-opaque`.
 
 To edit the Java or Kotlin files, open `example/android` in Android studio and find the source files at `react-native-opaque` under `Android`.
-
 
 ### Commit message convention
 
