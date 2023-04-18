@@ -1,22 +1,13 @@
-import { NativeModules, Platform } from 'react-native';
+import { NativeModules } from 'react-native';
 
-const LINKING_ERROR =
-  `The package 'react-native-opaque' doesn't seem to be linked. Make sure: \n\n` +
-  Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
-  '- You rebuilt the app after installing the package\n' +
-  '- You are not using Expo Go\n';
+const Opaque = NativeModules.Opaque;
 
-const Opaque = NativeModules.Opaque
-  ? NativeModules.Opaque
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
+if (Opaque && typeof Opaque.install === 'function') {
+  Opaque.install();
+}
 
-export function multiply(a: number, b: number): Promise<number> {
-  return Opaque.multiply(a, b);
+declare function jsi_multiply(a: number): number;
+
+export function multiply(a: number): number {
+  return jsi_multiply(a);
 }

@@ -1,8 +1,5 @@
-#ifndef OPAQUE_H
-#define OPAQUE_H
+#include <jsi/jsilib.h>
+#include <jsi/jsi.h>
 
-namespace opaque {
-  double multiply(double a, double b);
-}
-
-#endif /* OPAQUE_H */
+void installOpaque(facebook::jsi::Runtime &jsiRuntime);
+void cleanUpOpaque();
