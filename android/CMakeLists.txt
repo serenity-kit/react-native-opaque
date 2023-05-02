@@ -18,4 +18,19 @@ add_library(opaque
   cpp-adapter.cpp
 )
 
-target_link_libraries(opaque)
+set(RUST_BUILD_DIR ${CMAKE_CURRENT_LIST_DIR}/../rust/target)
+
+if (${ANDROID_ABI} STREQUAL arm64-v8a)
+  set(RUST_TARGET_DIR ${RUST_BUILD_DIR}/aarch64-linux-android)
+elseif(${ANDROID_ABI} STREQUAL armeabi-v7a)
+  set(RUST_TARGET_DIR ${RUST_BUILD_DIR}/arm-linux-androideabi)
+elseif(${ANDROID_ABI} STREQUAL x86)
+  set(RUST_TARGET_DIR ${RUST_BUILD_DIR}/i686-linux-android)
+else()
+  set(RUST_TARGET_DIR ${RUST_BUILD_DIR}/x86_64-linux-android)
+endif()
+
+target_link_libraries(opaque
+  debug ${RUST_TARGET_DIR}/debug/librust.a
+  optimized ${RUST_TARGET_DIR}/release/librust.a
+)
