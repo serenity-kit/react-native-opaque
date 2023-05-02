@@ -1,2 +1,9 @@
 [build]
-target = ["i686-linux-android", "x86_64-linux-android", "aarch64-linux-android", "arm-linux-androideabi"]
+target = [
+    "i686-linux-android",
+    "x86_64-linux-android",
+    "aarch64-linux-android",
+    "arm-linux-androideabi",
+    # "aarch64-apple-ios-sim",
+    "x86_64-apple-ios"
+]

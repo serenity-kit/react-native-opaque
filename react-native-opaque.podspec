@@ -32,4 +32,6 @@ Pod::Spec.new do |s|
     s.dependency "RCTTypeSafety"
     s.dependency "ReactCommon/turbomodule/core"
   end
+
+  s.vendored_libraries = 'rust/target/x86_64-apple-ios/debug/librust.a'
 end
