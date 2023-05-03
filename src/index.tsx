@@ -6,8 +6,13 @@ if (Opaque && typeof Opaque.install === 'function') {
   Opaque.install();
 }
 
-declare function jsi_multiply(a: number): number;
+type Foobar = {
+  foo: string;
+  bar: string;
+};
 
-export function multiply(a: number): number {
-  return jsi_multiply(a);
+declare function jsi_multiply(input: Foobar): Foobar;
+
+export function multiply(input: Foobar): Foobar {
+  return jsi_multiply(input);
 }
