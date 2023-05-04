@@ -26,14 +26,11 @@ void installOpaque(jsi::Runtime &rt)
 			auto params = args[0].getObject(rt);
 			auto foo = params.getProperty(rt, "foo").getString(rt);
 			auto bar = params.getProperty(rt, "bar").getString(rt);
-			struct Foobar input = {};
-			input.foo = foo.utf8(rt).c_str();
-			input.bar = bar.utf8(rt).c_str();
-
+			struct Foobar input = {.foo = foo.utf8(rt).c_str(), .bar = bar.utf8(rt).c_str()};
 			auto output = get_foobar(input);
 			auto obj = jsi::Object(rt);
-			obj.setProperty(rt, "foo", jsi::String::createFromUtf8(rt, output->foo));
-			obj.setProperty(rt, "bar", jsi::String::createFromUtf8(rt, output->bar));
+			obj.setProperty(rt, "foo", jsi::String::createFromUtf8(rt, output.foo));
+			obj.setProperty(rt, "bar", jsi::String::createFromUtf8(rt, output.bar));
 
 			return obj;
 		});

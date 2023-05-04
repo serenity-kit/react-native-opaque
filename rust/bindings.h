@@ -13,6 +13,6 @@ extern "C" {
 
 double get_rust_answer();
 
-Foobar *get_foobar(Foobar input);
+Foobar get_foobar(Foobar input);
 
 } // extern "C"
