@@ -2,7 +2,7 @@
 #include <jsi/jsi.h>
 #include "react-native-opaque.h"
 #include <sstream>
-#include "../rust/bindings.h"
+#include "./rust.h"
 
 using namespace facebook;
 
@@ -26,11 +26,11 @@ void installOpaque(jsi::Runtime &rt)
 			auto params = args[0].getObject(rt);
 			auto foo = params.getProperty(rt, "foo").getString(rt);
 			auto bar = params.getProperty(rt, "bar").getString(rt);
-			struct Foobar input = {.foo = foo.utf8(rt).c_str(), .bar = bar.utf8(rt).c_str()};
-			auto output = get_foobar(input);
+			struct TheFoobar input = {.foo = foo.utf8(rt), .bar = bar.utf8(rt)};
+			auto output = get_the_foobar(input);
 			auto obj = jsi::Object(rt);
-			obj.setProperty(rt, "foo", jsi::String::createFromUtf8(rt, output.foo));
-			obj.setProperty(rt, "bar", jsi::String::createFromUtf8(rt, output.bar));
+			obj.setProperty(rt, "foo", jsi::String::createFromUtf8(rt, std::string(output.foo)));
+			obj.setProperty(rt, "bar", jsi::String::createFromUtf8(rt, std::string(output.bar)));
 
 			return obj;
 		});

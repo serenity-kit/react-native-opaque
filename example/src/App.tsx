@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { multiply } from 'react-native-opaque';
 
 export default function App() {
-  const foobar = multiply({ foo: 'afoo', bar: 'abar' });
+  const foobar = multiply({ foo: 'FO', bar: 'BA' });
   console.log(foobar);
   return (
     <View style={styles.container}>

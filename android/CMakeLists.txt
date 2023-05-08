@@ -15,6 +15,8 @@ add_library(opaque
   ../node_modules/react-native/ReactCommon/jsi/jsi/jsi.cpp
   ../cpp/react-native-opaque.cpp
   ../cpp/react-native-opaque.h
+  ../cpp/rust.h
+  ../cpp/rust.cpp
   cpp-adapter.cpp
 )
 
