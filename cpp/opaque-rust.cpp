@@ -109,6 +109,7 @@ union MaybeUninit {
 } // namespace rust
 
 struct TheFoobar;
+struct OpaqueClientRegistrationStartResult;
 
 #ifndef CXXBRIDGE1_STRUCT_TheFoobar
 #define CXXBRIDGE1_STRUCT_TheFoobar
@@ -120,13 +121,31 @@ struct TheFoobar final {
 };
 #endif // CXXBRIDGE1_STRUCT_TheFoobar
 
+#ifndef CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
+#define CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
+struct OpaqueClientRegistrationStartResult final {
+  ::rust::String client_registration;
+  ::rust::String registration_request;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
+
 extern "C" {
 void cxxbridge1$get_the_foobar(::TheFoobar *input, ::TheFoobar *return$) noexcept;
+
+void cxxbridge1$opaque_client_registration_start(::rust::String *password, ::OpaqueClientRegistrationStartResult *return$) noexcept;
 } // extern "C"
 
 ::TheFoobar get_the_foobar(::TheFoobar input) noexcept {
   ::rust::ManuallyDrop<::TheFoobar> input$(::std::move(input));
   ::rust::MaybeUninit<::TheFoobar> return$;
   cxxbridge1$get_the_foobar(&input$.value, &return$.value);
+  return ::std::move(return$.value);
+}
+
+::OpaqueClientRegistrationStartResult opaque_client_registration_start(::rust::String password) noexcept {
+  ::rust::MaybeUninit<::OpaqueClientRegistrationStartResult> return$;
+  cxxbridge1$opaque_client_registration_start(&password, &return$.value);
   return ::std::move(return$.value);
 }

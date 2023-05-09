@@ -31,4 +31,25 @@ void installOpaque(jsi::Runtime &rt)
 		});
 
 	rt.global().setProperty(rt, "opaque_foobar", std::move(foobar));
+
+	auto clientRegistrationStart = jsi::Function::createFromHostFunction(
+		rt,
+		jsi::PropNameID::forAscii(rt, "opaque_clientRegistrationStart"),
+		0,
+		[](jsi::Runtime &rt, const jsi::Value &self, const jsi::Value *args, size_t count) -> jsi::Value
+		{
+			if (count != 1)
+			{
+				throw std::runtime_error("expected 1 arg");
+			}
+
+			auto password = args[0].getString(rt);
+			auto clientStartResult = opaque_client_registration_start(password.utf8(rt));
+			auto result = jsi::Object(rt);
+			result.setProperty(rt, "clientRegistration", std::string(clientStartResult.client_registration));
+			result.setProperty(rt, "registrationRequest", std::string(clientStartResult.registration_request));
+			return result;
+		});
+
+	rt.global().setProperty(rt, "opaque_clientRegistrationStart", std::move(clientRegistrationStart));
 }

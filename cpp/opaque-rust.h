@@ -80,6 +80,7 @@ private:
 } // namespace rust
 
 struct TheFoobar;
+struct OpaqueClientRegistrationStartResult;
 
 #ifndef CXXBRIDGE1_STRUCT_TheFoobar
 #define CXXBRIDGE1_STRUCT_TheFoobar
@@ -91,4 +92,16 @@ struct TheFoobar final {
 };
 #endif // CXXBRIDGE1_STRUCT_TheFoobar
 
+#ifndef CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
+#define CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
+struct OpaqueClientRegistrationStartResult final {
+  ::rust::String client_registration;
+  ::rust::String registration_request;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
+
 ::TheFoobar get_the_foobar(::TheFoobar input) noexcept;
+
+::OpaqueClientRegistrationStartResult opaque_client_registration_start(::rust::String password) noexcept;
