@@ -2,23 +2,18 @@
 #include <jsi/jsi.h>
 #include "react-native-opaque.h"
 #include <sstream>
-#include "./rust.h"
+#include "./opaque-rust.h"
 
 using namespace facebook;
 
-// extern "C" double get_rust_answer();
-
-// We get the runtime from the obj-c code and we create our native functions here
 void installOpaque(jsi::Runtime &rt)
 {
-	// printf("installOpaque called");
-	auto jsi_multiply = jsi::Function::createFromHostFunction(
+	auto foobar = jsi::Function::createFromHostFunction(
 		rt,
-		jsi::PropNameID::forAscii(rt, "jsi_multiply"),
+		jsi::PropNameID::forAscii(rt, "opaque_foobar"),
 		0,
 		[](jsi::Runtime &rt, const jsi::Value &self, const jsi::Value *args, size_t count) -> jsi::Value
 		{
-			// double res = get_rust_answer();
 			if (count != 1)
 			{
 				throw std::runtime_error("expected 1 arg");
@@ -35,5 +30,5 @@ void installOpaque(jsi::Runtime &rt)
 			return obj;
 		});
 
-	rt.global().setProperty(rt, "jsi_multiply", std::move(jsi_multiply));
+	rt.global().setProperty(rt, "opaque_foobar", std::move(foobar));
 }

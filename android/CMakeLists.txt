@@ -15,8 +15,8 @@ add_library(opaque
   ../node_modules/react-native/ReactCommon/jsi/jsi/jsi.cpp
   ../cpp/react-native-opaque.cpp
   ../cpp/react-native-opaque.h
-  ../cpp/rust.h
-  ../cpp/rust.cpp
+  ../cpp/opaque-rust.h
+  ../cpp/opaque-rust.cpp
   cpp-adapter.cpp
 )
 
@@ -33,6 +33,6 @@ else()
 endif()
 
 target_link_libraries(opaque
-  debug ${RUST_TARGET_DIR}/debug/librust.a
-  optimized ${RUST_TARGET_DIR}/release/librust.a
+  debug ${RUST_TARGET_DIR}/debug/libopaque_rust.a
+  optimized ${RUST_TARGET_DIR}/release/libopaque_rust.a
 )

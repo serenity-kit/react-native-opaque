@@ -16,8 +16,8 @@ type Foobar = {
   bar: string;
 };
 
-declare function jsi_multiply(input: Foobar): Foobar;
+declare function opaque_foobar(input: Foobar): Foobar;
 
-export function multiply(input: Foobar): Foobar {
-  return jsi_multiply(input);
+export function foobar(input: Foobar): Foobar {
+  return opaque_foobar(input);
 }

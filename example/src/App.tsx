@@ -1,10 +1,10 @@
 import * as React from 'react';
 
 import { StyleSheet, Text, View } from 'react-native';
-import { multiply } from 'react-native-opaque';
+import * as opaque from 'react-native-opaque';
 
 export default function App() {
-  const foobar = multiply({ foo: 'FO', bar: 'BA' });
+  const foobar = opaque.foobar({ foo: 'FO', bar: 'BA' });
   console.log(foobar);
   return (
     <View style={styles.container}>

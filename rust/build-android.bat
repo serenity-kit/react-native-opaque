@@ -23,6 +23,6 @@ set TOOLS=%NDK%\toolchains\llvm\prebuilt\%NDK_HOST%
 set AR=%TOOLS%\bin\llvm-ar
 set CXX=%TOOLS%\bin\%NDK_TARGET%%API_VERSION%-clang++
 set RANLIB=%TOOLS%\bin\llvm-ranlib
-set CXXFLAGS=-std=c++14 --target=%NDK_TARGET%
+set CXXFLAGS=--target=%NDK_TARGET%
 
 cargo build --target %TARGET% -v

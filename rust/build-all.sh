@@ -13,5 +13,5 @@ do
     ./build-android.sh $TARGET
 done
 
-cxxbridge src/lib.rs --header > ../cpp/rust.h
-cxxbridge src/lib.rs > ../cpp/rust.cpp
+cxxbridge src/lib.rs --header > ../cpp/opaque-rust.h
+cxxbridge src/lib.rs > ../cpp/opaque-rust.cpp

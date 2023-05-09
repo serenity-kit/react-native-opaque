@@ -15,7 +15,7 @@ rustlib_xcconfig = {
   'LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*][arch=arm64][config=Release]' => '${PODS_TARGET_SRCROOT}/rust/target/aarch64-apple-ios-sim/release',
 
   # link rust lib
-  'OTHER_LIBTOOLFLAGS' => '-lrust',
+  'OTHER_LIBTOOLFLAGS' => '-lopaque_rust',
 }
 
 Pod::Spec.new do |s|
