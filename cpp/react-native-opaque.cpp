@@ -37,7 +37,3 @@ void installOpaque(jsi::Runtime &rt)
 
 	rt.global().setProperty(rt, "jsi_multiply", std::move(jsi_multiply));
 }
-
-void cleanUpOpaque()
-{
-}
