@@ -24,4 +24,5 @@ TOOLS="$NDK/toolchains/llvm/prebuilt/$NDK_HOST"
 AR=$TOOLS/bin/llvm-ar \
 CXX=$TOOLS/bin/${NDK_TARGET}${API_VERSION}-clang++ \
 RANLIB=$TOOLS/bin/llvm-ranlib \
+CXXFLAGS="-std=c++14 --target=$NDK_TARGET" \
 cargo build --target $TARGET -v
