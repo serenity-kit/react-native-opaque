@@ -1,6 +1,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <exception>
 #include <new>
 #include <string>
 #include <type_traits>
@@ -11,6 +12,11 @@ inline namespace cxxbridge1 {
 // #include "rust/cxx.h"
 
 struct unsafe_bitcopy_t;
+
+namespace {
+template <typename T>
+class impl;
+} // namespace
 
 #ifndef CXXBRIDGE1_RUST_STRING
 #define CXXBRIDGE1_RUST_STRING
@@ -79,6 +85,34 @@ private:
 };
 #endif // CXXBRIDGE1_RUST_STRING
 
+#ifndef CXXBRIDGE1_RUST_ERROR
+#define CXXBRIDGE1_RUST_ERROR
+class Error final : public std::exception {
+public:
+  Error(const Error &);
+  Error(Error &&) noexcept;
+  ~Error() noexcept override;
+
+  Error &operator=(const Error &) &;
+  Error &operator=(Error &&) &noexcept;
+
+  const char *what() const noexcept override;
+
+private:
+  Error() noexcept = default;
+  friend impl<Error>;
+  const char *msg;
+  std::size_t len;
+};
+#endif // CXXBRIDGE1_RUST_ERROR
+
+namespace repr {
+struct PtrLen final {
+  void *ptr;
+  ::std::size_t len;
+};
+} // namespace repr
+
 namespace detail {
 template <typename T, typename = void *>
 struct operator_new {
@@ -105,21 +139,25 @@ union MaybeUninit {
   MaybeUninit() {}
   ~MaybeUninit() {}
 };
+
+namespace {
+template <>
+class impl<Error> final {
+public:
+  static Error error(repr::PtrLen repr) noexcept {
+    Error error;
+    error.msg = static_cast<char const *>(repr.ptr);
+    error.len = repr.len;
+    return error;
+  }
+};
+} // namespace
 } // namespace cxxbridge1
 } // namespace rust
 
-struct TheFoobar;
 struct OpaqueClientRegistrationStartResult;
-
-#ifndef CXXBRIDGE1_STRUCT_TheFoobar
-#define CXXBRIDGE1_STRUCT_TheFoobar
-struct TheFoobar final {
-  ::rust::String foo;
-  ::rust::String bar;
-
-  using IsRelocatable = ::std::true_type;
-};
-#endif // CXXBRIDGE1_STRUCT_TheFoobar
+struct OpaqueClientRegistrationFinishParams;
+struct OpaqueClientRegistrationFinishResult;
 
 #ifndef CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
 #define CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
@@ -131,21 +169,47 @@ struct OpaqueClientRegistrationStartResult final {
 };
 #endif // CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
 
+#ifndef CXXBRIDGE1_STRUCT_OpaqueClientRegistrationFinishParams
+#define CXXBRIDGE1_STRUCT_OpaqueClientRegistrationFinishParams
+struct OpaqueClientRegistrationFinishParams final {
+  ::rust::String password;
+  ::rust::String registration_response;
+  ::rust::String client_registration;
+  ::rust::String client_identifier;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueClientRegistrationFinishParams
+
+#ifndef CXXBRIDGE1_STRUCT_OpaqueClientRegistrationFinishResult
+#define CXXBRIDGE1_STRUCT_OpaqueClientRegistrationFinishResult
+struct OpaqueClientRegistrationFinishResult final {
+  ::rust::String registration_upload;
+  ::rust::String export_key;
+  ::rust::String server_static_public_key;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueClientRegistrationFinishResult
+
 extern "C" {
-void cxxbridge1$get_the_foobar(::TheFoobar *input, ::TheFoobar *return$) noexcept;
-
 void cxxbridge1$opaque_client_registration_start(::rust::String *password, ::OpaqueClientRegistrationStartResult *return$) noexcept;
-} // extern "C"
 
-::TheFoobar get_the_foobar(::TheFoobar input) noexcept {
-  ::rust::ManuallyDrop<::TheFoobar> input$(::std::move(input));
-  ::rust::MaybeUninit<::TheFoobar> return$;
-  cxxbridge1$get_the_foobar(&input$.value, &return$.value);
-  return ::std::move(return$.value);
-}
+::rust::repr::PtrLen cxxbridge1$opaque_client_registration_finish(::OpaqueClientRegistrationFinishParams *params, ::OpaqueClientRegistrationFinishResult *return$) noexcept;
+} // extern "C"
 
 ::OpaqueClientRegistrationStartResult opaque_client_registration_start(::rust::String password) noexcept {
   ::rust::MaybeUninit<::OpaqueClientRegistrationStartResult> return$;
   cxxbridge1$opaque_client_registration_start(&password, &return$.value);
+  return ::std::move(return$.value);
+}
+
+::OpaqueClientRegistrationFinishResult opaque_client_registration_finish(::OpaqueClientRegistrationFinishParams params) {
+  ::rust::ManuallyDrop<::OpaqueClientRegistrationFinishParams> params$(::std::move(params));
+  ::rust::MaybeUninit<::OpaqueClientRegistrationFinishResult> return$;
+  ::rust::repr::PtrLen error$ = cxxbridge1$opaque_client_registration_finish(&params$.value, &return$.value);
+  if (error$.ptr) {
+    throw ::rust::impl<::rust::Error>::error(error$);
+  }
   return ::std::move(return$.value);
 }

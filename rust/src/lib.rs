@@ -1,8 +1,12 @@
+use std::fmt;
+
 use argon2::Argon2;
 use base64::{engine::general_purpose as b64, Engine as _};
-use opaque_ke::ciphersuite::CipherSuite;
 use opaque_ke::rand::rngs::OsRng;
-use opaque_ke::ClientRegistration;
+use opaque_ke::{ciphersuite::CipherSuite, errors::ProtocolError};
+use opaque_ke::{
+    ClientRegistration, ClientRegistrationFinishParameters, Identifiers, RegistrationResponse,
+};
 
 struct DefaultCipherSuite;
 
@@ -10,50 +14,95 @@ impl CipherSuite for DefaultCipherSuite {
     type OprfCs = opaque_ke::Ristretto255;
     type KeGroup = opaque_ke::Ristretto255;
     type KeyExchange = opaque_ke::key_exchange::tripledh::TripleDh;
-
     type Ksf = Argon2<'static>;
 }
 
-#[cxx::bridge]
-mod ffi {
-    struct TheFoobar {
-        foo: String,
-        bar: String,
-    }
+enum Error {
+    Protocol {
+        context: &'static str,
+        error: ProtocolError,
+    },
+    Base64 {
+        context: &'static str,
+        error: base64::DecodeError,
+    },
+}
 
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Error::Protocol { context, error } => {
+                write!(f, "opaque protocol error at \"{}\"; {}", context, error)
+            }
+            Error::Base64 { context, error } => {
+                write!(f, "base64 decoding failed at \"{}\"; {}", context, error)
+            }
+        }
+    }
+}
+
+fn from_base64_error(context: &'static str) -> impl Fn(base64::DecodeError) -> Error {
+    move |error| Error::Base64 { context, error }
+}
+
+fn from_protocol_error(context: &'static str) -> impl Fn(ProtocolError) -> Error {
+    move |error| Error::Protocol { context, error }
+}
+
+const BASE64: b64::GeneralPurpose = b64::URL_SAFE_NO_PAD;
+
+type OpaqueResult<T> = Result<T, Error>;
+
+fn base64_decode<T: AsRef<[u8]>>(context: &'static str, input: T) -> OpaqueResult<Vec<u8>> {
+    BASE64.decode(input).map_err(from_base64_error(context))
+}
+
+#[cxx::bridge]
+mod opaque_ffi {
     struct OpaqueClientRegistrationStartResult {
         client_registration: String,
         registration_request: String,
     }
 
+    pub struct OpaqueClientRegistrationFinishParams {
+        password: String,
+        registration_response: String,
+        client_registration: String,
+        client_identifier: String,
+        // TODO: Option is not supported. Maybe we can use SharedPtr or UniquePtr? As a last resort a Vec should definitely work.
+        // server_identifier: Option<String>,
+    }
+
+    pub struct OpaqueClientRegistrationFinishResult {
+        registration_upload: String,
+        export_key: String,
+        server_static_public_key: String,
+    }
+
     extern "Rust" {
-        fn get_the_foobar(input: TheFoobar) -> TheFoobar;
         fn opaque_client_registration_start(
             password: String,
         ) -> OpaqueClientRegistrationStartResult;
+
+        fn opaque_client_registration_finish(
+            params: OpaqueClientRegistrationFinishParams,
+        ) -> Result<OpaqueClientRegistrationFinishResult>;
     }
 }
 
-use ffi::TheFoobar;
+use opaque_ffi::{
+    OpaqueClientRegistrationFinishParams, OpaqueClientRegistrationFinishResult,
+    OpaqueClientRegistrationStartResult,
+};
 
-const BASE64: b64::GeneralPurpose = b64::URL_SAFE_NO_PAD;
-
-fn get_the_foobar(input: TheFoobar) -> TheFoobar {
-    let foo = format!("rustfoo[{}]", input.foo);
-    let bar = format!("rustbar[{}]", input.bar);
-    TheFoobar { foo: bar, bar: foo }
-}
-
-pub fn opaque_client_registration_start(
-    password: String,
-) -> ffi::OpaqueClientRegistrationStartResult {
+fn opaque_client_registration_start(password: String) -> OpaqueClientRegistrationStartResult {
     let mut client_rng = OsRng;
 
     let client_registration_start_result =
         ClientRegistration::<DefaultCipherSuite>::start(&mut client_rng, password.as_bytes())
             .unwrap();
 
-    let result = ffi::OpaqueClientRegistrationStartResult {
+    let result = opaque_ffi::OpaqueClientRegistrationStartResult {
         client_registration: BASE64.encode(client_registration_start_result.state.serialize()),
         registration_request: BASE64.encode(
             client_registration_start_result
@@ -63,4 +112,43 @@ pub fn opaque_client_registration_start(
         ),
     };
     return result;
+}
+
+fn opaque_client_registration_finish(
+    params: OpaqueClientRegistrationFinishParams,
+) -> Result<OpaqueClientRegistrationFinishResult, Error> {
+    let registration_response_bytes =
+        base64_decode("registrationResponse", params.registration_response)?;
+    let mut rng: OsRng = OsRng;
+    let client_registration = base64_decode("clientRegistration", params.client_registration)?;
+    let state = ClientRegistration::<DefaultCipherSuite>::deserialize(&client_registration)
+        .map_err(from_protocol_error("deserialize clientRegistration"))?;
+
+    let finish_params = ClientRegistrationFinishParameters::new(
+        Identifiers {
+            client: Some(params.client_identifier.as_bytes()),
+            // server: params.server_identifier.as_ref().map(|val| val.as_bytes()),
+            server: None,
+        },
+        None,
+    );
+
+    let client_finish_registration_result = state
+        .finish(
+            &mut rng,
+            params.password.as_bytes(),
+            RegistrationResponse::deserialize(&registration_response_bytes)
+                .map_err(from_protocol_error("deserialize registrationResponse"))?,
+            finish_params,
+        )
+        .map_err(from_protocol_error("finish clientRegistration"))?;
+
+    let message_bytes = client_finish_registration_result.message.serialize();
+    let result = OpaqueClientRegistrationFinishResult {
+        registration_upload: BASE64.encode(message_bytes.to_vec()),
+        export_key: BASE64.encode(client_finish_registration_result.export_key),
+        server_static_public_key: BASE64
+            .encode(client_finish_registration_result.server_s_pk.serialize()),
+    };
+    return Ok(result);
 }

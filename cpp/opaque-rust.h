@@ -79,18 +79,9 @@ private:
 } // namespace cxxbridge1
 } // namespace rust
 
-struct TheFoobar;
 struct OpaqueClientRegistrationStartResult;
-
-#ifndef CXXBRIDGE1_STRUCT_TheFoobar
-#define CXXBRIDGE1_STRUCT_TheFoobar
-struct TheFoobar final {
-  ::rust::String foo;
-  ::rust::String bar;
-
-  using IsRelocatable = ::std::true_type;
-};
-#endif // CXXBRIDGE1_STRUCT_TheFoobar
+struct OpaqueClientRegistrationFinishParams;
+struct OpaqueClientRegistrationFinishResult;
 
 #ifndef CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
 #define CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
@@ -102,6 +93,29 @@ struct OpaqueClientRegistrationStartResult final {
 };
 #endif // CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
 
-::TheFoobar get_the_foobar(::TheFoobar input) noexcept;
+#ifndef CXXBRIDGE1_STRUCT_OpaqueClientRegistrationFinishParams
+#define CXXBRIDGE1_STRUCT_OpaqueClientRegistrationFinishParams
+struct OpaqueClientRegistrationFinishParams final {
+  ::rust::String password;
+  ::rust::String registration_response;
+  ::rust::String client_registration;
+  ::rust::String client_identifier;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueClientRegistrationFinishParams
+
+#ifndef CXXBRIDGE1_STRUCT_OpaqueClientRegistrationFinishResult
+#define CXXBRIDGE1_STRUCT_OpaqueClientRegistrationFinishResult
+struct OpaqueClientRegistrationFinishResult final {
+  ::rust::String registration_upload;
+  ::rust::String export_key;
+  ::rust::String server_static_public_key;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueClientRegistrationFinishResult
 
 ::OpaqueClientRegistrationStartResult opaque_client_registration_start(::rust::String password) noexcept;
+
+::OpaqueClientRegistrationFinishResult opaque_client_registration_finish(::OpaqueClientRegistrationFinishParams params);
