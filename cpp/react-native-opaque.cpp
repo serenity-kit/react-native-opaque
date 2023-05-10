@@ -20,18 +20,23 @@ namespace Opaque
 		return result;
 	}
 
-	jsi::Value foobar(jsi::Runtime &rt, jsi::Value &arg)
+	jsi::Value clientRegistrationFinish(jsi::Runtime &rt, jsi::Value &input)
 	{
-		auto params = arg.getObject(rt);
-		auto foo = params.getProperty(rt, "foo").getString(rt);
-		auto bar = params.getProperty(rt, "bar").getString(rt);
-		struct TheFoobar input = {.foo = foo.utf8(rt), .bar = bar.utf8(rt)};
-		auto output = get_the_foobar(input);
-		auto obj = jsi::Object(rt);
-		obj.setProperty(rt, "foo", jsi::String::createFromUtf8(rt, std::string(output.foo)));
-		obj.setProperty(rt, "bar", jsi::String::createFromUtf8(rt, std::string(output.bar)));
+		auto obj = input.getObject(rt);
 
-		return obj;
+		struct OpaqueClientRegistrationFinishParams params = {
+			.password = obj.getProperty(rt, "password").asString(rt).utf8(rt),
+			.registration_response = obj.getProperty(rt, "registrationResponse").asString(rt).utf8(rt),
+			.client_registration = obj.getProperty(rt, "clientRegistration").asString(rt).utf8(rt),
+			.client_identifier = obj.getProperty(rt, "clientIdentifier").asString(rt).utf8(rt),
+		};
+
+		auto finish = opaque_client_registration_finish(params);
+		auto result = jsi::Object(rt);
+		result.setProperty(rt, "exportKey", std::string(finish.export_key));
+		result.setProperty(rt, "registrationUpload", std::string(finish.registration_upload));
+		result.setProperty(rt, "serverStaticPublicKey", std::string(finish.server_static_public_key));
+		return result;
 	}
 
 	void installFunc(jsi::Runtime &rt, const std::string name, OpaqueFunc func)
@@ -57,6 +62,6 @@ namespace Opaque
 	void installOpaque(jsi::Runtime &rt)
 	{
 		installFunc(rt, "opaque_clientRegistrationStart", clientRegistrationStart);
-		installFunc(rt, "opaque_foobar", foobar);
+		installFunc(rt, "opaque_clientRegistrationFinish", clientRegistrationFinish);
 	}
 }
