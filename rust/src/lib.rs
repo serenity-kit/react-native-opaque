@@ -18,6 +18,9 @@ impl CipherSuite for DefaultCipherSuite {
 }
 
 enum Error {
+    Input {
+        message: String,
+    },
     Protocol {
         context: &'static str,
         error: ProtocolError,
@@ -31,6 +34,9 @@ enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Error::Input { message } => {
+                write!(f, "{}", message)
+            }
             Error::Protocol { context, error } => {
                 write!(f, "opaque protocol error at \"{}\"; {}", context, error)
             }
@@ -69,8 +75,7 @@ mod opaque_ffi {
         registration_response: String,
         client_registration: String,
         client_identifier: String,
-        // TODO: Option is not supported. Maybe we can use SharedPtr or UniquePtr? As a last resort a Vec should definitely work.
-        // server_identifier: Option<String>,
+        server_identifier: Vec<String>,
     }
 
     pub struct OpaqueClientRegistrationFinishResult {
@@ -82,7 +87,7 @@ mod opaque_ffi {
     extern "Rust" {
         fn opaque_client_registration_start(
             password: String,
-        ) -> OpaqueClientRegistrationStartResult;
+        ) -> Result<OpaqueClientRegistrationStartResult>;
 
         fn opaque_client_registration_finish(
             params: OpaqueClientRegistrationFinishParams,
@@ -95,12 +100,14 @@ use opaque_ffi::{
     OpaqueClientRegistrationStartResult,
 };
 
-fn opaque_client_registration_start(password: String) -> OpaqueClientRegistrationStartResult {
+fn opaque_client_registration_start(
+    password: String,
+) -> Result<OpaqueClientRegistrationStartResult, Error> {
     let mut client_rng = OsRng;
 
     let client_registration_start_result =
         ClientRegistration::<DefaultCipherSuite>::start(&mut client_rng, password.as_bytes())
-            .unwrap();
+            .map_err(from_protocol_error("start clientRegistration"))?;
 
     let result = opaque_ffi::OpaqueClientRegistrationStartResult {
         client_registration: BASE64.encode(client_registration_start_result.state.serialize()),
@@ -111,7 +118,7 @@ fn opaque_client_registration_start(password: String) -> OpaqueClientRegistratio
                 .to_vec(),
         ),
     };
-    return result;
+    return Ok(result);
 }
 
 fn opaque_client_registration_finish(
@@ -124,11 +131,25 @@ fn opaque_client_registration_finish(
     let state = ClientRegistration::<DefaultCipherSuite>::deserialize(&client_registration)
         .map_err(from_protocol_error("deserialize clientRegistration"))?;
 
+    let server_ident = match params.server_identifier.len() {
+        0 => Ok(None),
+        1 => params.server_identifier.get(0).map_or_else(
+            || {
+                Err(Error::Input {
+                    message: "error retrieving server_identifier".to_string(),
+                })
+            },
+            |x| Ok(Some(x)),
+        ),
+        len => Err(Error::Input {
+            message: format!("invalid number of server_identifier values, expected exactly 0 or 1 but received {}", len),
+        }),
+    }?;
+
     let finish_params = ClientRegistrationFinishParameters::new(
         Identifiers {
             client: Some(params.client_identifier.as_bytes()),
-            // server: params.server_identifier.as_ref().map(|val| val.as_bytes()),
-            server: None,
+            server: server_ident.map(|val| val.as_bytes()),
         },
         None,
     );

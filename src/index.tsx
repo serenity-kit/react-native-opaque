@@ -20,19 +20,23 @@ declare function opaque_clientRegistrationStart(
   password: string
 ): ClientRegistrationStartResult;
 
-export function clientRegistrationStart(
-  password: string
-): ClientRegistrationStartResult {
-  return opaque_clientRegistrationStart(password);
-}
+export const clientRegistrationStart = opaque_clientRegistrationStart;
 
-type ClientRegistrationFinishParams = {
+type ClientRegistrationFinishParamsCommon = {
   password: string;
   registrationResponse: string;
   clientRegistration: string;
   clientIdentifier: string;
-  // serverIdentifier: string|null,
 };
+
+type ClientRegistrationFinishParams = ClientRegistrationFinishParamsCommon & {
+  serverIdentifier?: string;
+};
+
+type ClientRegistrationFinishParamsInternal =
+  ClientRegistrationFinishParamsCommon & {
+    serverIdentifier: [] | [string];
+  };
 
 type ClientRegistrationFinishResult = {
   registrationUpload: string;
@@ -41,11 +45,16 @@ type ClientRegistrationFinishResult = {
 };
 
 declare function opaque_clientRegistrationFinish(
-  finishParams: ClientRegistrationFinishParams
+  finishParams: ClientRegistrationFinishParamsInternal
 ): ClientRegistrationFinishResult;
 
-export function clientRegistrationFinish(
-  finishParams: ClientRegistrationFinishParams
-): ClientRegistrationFinishResult {
-  return opaque_clientRegistrationFinish(finishParams);
+export function clientRegistrationFinish({
+  serverIdentifier,
+  ...baseParams
+}: ClientRegistrationFinishParams): ClientRegistrationFinishResult {
+  const params: ClientRegistrationFinishParamsInternal = {
+    ...baseParams,
+    serverIdentifier: serverIdentifier ? [serverIdentifier] : [],
+  };
+  return opaque_clientRegistrationFinish(params);
 }

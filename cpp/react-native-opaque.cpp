@@ -24,11 +24,19 @@ namespace NativeOpaque
 	{
 		auto obj = input.getObject(rt);
 
+		auto serverIdent = ::rust::Vec<::rust::String>();
+		auto serverIdentProp = obj.getProperty(rt, "serverIdentifier");
+		if (serverIdentProp.isString())
+		{
+			serverIdent.push_back(std::string(serverIdentProp.getString(rt).utf8(rt)));
+		}
+
 		struct OpaqueClientRegistrationFinishParams params = {
 			.password = obj.getProperty(rt, "password").asString(rt).utf8(rt),
 			.registration_response = obj.getProperty(rt, "registrationResponse").asString(rt).utf8(rt),
 			.client_registration = obj.getProperty(rt, "clientRegistration").asString(rt).utf8(rt),
 			.client_identifier = obj.getProperty(rt, "clientIdentifier").asString(rt).utf8(rt),
+			.server_identifier = serverIdent,
 		};
 
 		auto finish = opaque_client_registration_finish(params);
