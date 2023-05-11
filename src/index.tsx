@@ -58,3 +58,35 @@ export function clientRegistrationFinish({
   };
   return opaque_clientRegistrationFinish(params);
 }
+
+type ClientLoginStartResult = {
+  clientLogin: string;
+  credentialRequest: string;
+};
+
+declare function opaque_clientLoginStart(
+  password: string
+): ClientLoginStartResult;
+
+export const clientLoginStart = opaque_clientLoginStart;
+
+type ClientLoginFinishParams = {
+  clientLogin: string;
+  credentialResponse: string;
+  password: string;
+  clientIdentifier: string;
+  // serverIdentifier?: string; TODO
+};
+
+type ClientLoginFinishResult = {
+  credentialFinalization: string;
+  sessionKey: string;
+  exportKey: string;
+  serverStaticPublicKey: string;
+};
+
+declare function opaque_clientLoginFinish(
+  params: ClientLoginFinishParams
+): ClientLoginFinishResult;
+
+export const clientLoginFinish = opaque_clientLoginFinish;

@@ -47,6 +47,37 @@ namespace NativeOpaque
 		return result;
 	}
 
+	jsi::Value clientLoginStart(jsi::Runtime &rt, jsi::Value &input)
+	{
+		auto result = opaque_client_login_start(std::string(input.getString(rt).utf8(rt)));
+		auto obj = jsi::Object(rt);
+		obj.setProperty(rt, "clientLogin", std::string(result.client_login));
+		obj.setProperty(rt, "credentialRequest", std::string(result.credential_request));
+		return obj;
+	}
+
+	jsi::Value clientLoginFinish(jsi::Runtime &rt, jsi::Value &input)
+	{
+		auto obj = input.getObject(rt);
+		struct OpaqueClientLoginFinishParams params = {
+			.client_login = obj.getProperty(rt, "clientLogin").asString(rt).utf8(rt),
+			.credential_response = obj.getProperty(rt, "credentialResponse").asString(rt).utf8(rt),
+			.password = obj.getProperty(rt, "password").asString(rt).utf8(rt),
+			.client_identifier = obj.getProperty(rt, "clientIdentifier").asString(rt).utf8(rt),
+		};
+		auto result = opaque_client_login_finish(params);
+		if (result == nullptr)
+		{
+			return jsi::Value::null();
+		}
+		auto ret = jsi::Object(rt);
+		ret.setProperty(rt, "credentialFinalization", std::string(result->credential_finalization));
+		ret.setProperty(rt, "sessionKey", std::string(result->session_key));
+		ret.setProperty(rt, "exportKey", std::string(result->export_key));
+		ret.setProperty(rt, "serverStaticPublicKey", std::string(result->server_static_public_key));
+		return ret;
+	}
+
 	void installFunc(jsi::Runtime &rt, const std::string name, OpaqueFunc func)
 	{
 		auto propName = jsi::PropNameID::forAscii(rt, name);
@@ -71,5 +102,7 @@ namespace NativeOpaque
 	{
 		installFunc(rt, "opaque_clientRegistrationStart", clientRegistrationStart);
 		installFunc(rt, "opaque_clientRegistrationFinish", clientRegistrationFinish);
+		installFunc(rt, "opaque_clientLoginStart", clientLoginStart);
+		installFunc(rt, "opaque_clientLoginFinish", clientLoginFinish);
 	}
 }

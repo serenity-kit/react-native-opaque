@@ -6,6 +6,7 @@
 #include <exception>
 #include <initializer_list>
 #include <iterator>
+#include <memory>
 #include <new>
 #include <stdexcept>
 #include <string>
@@ -779,6 +780,9 @@ public:
 struct OpaqueClientRegistrationStartResult;
 struct OpaqueClientRegistrationFinishParams;
 struct OpaqueClientRegistrationFinishResult;
+struct OpaqueClientLoginStartResult;
+struct OpaqueClientLoginFinishParams;
+struct OpaqueClientLoginFinishResult;
 
 #ifndef CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
 #define CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
@@ -814,10 +818,48 @@ struct OpaqueClientRegistrationFinishResult final {
 };
 #endif // CXXBRIDGE1_STRUCT_OpaqueClientRegistrationFinishResult
 
+#ifndef CXXBRIDGE1_STRUCT_OpaqueClientLoginStartResult
+#define CXXBRIDGE1_STRUCT_OpaqueClientLoginStartResult
+struct OpaqueClientLoginStartResult final {
+  ::rust::String client_login;
+  ::rust::String credential_request;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueClientLoginStartResult
+
+#ifndef CXXBRIDGE1_STRUCT_OpaqueClientLoginFinishParams
+#define CXXBRIDGE1_STRUCT_OpaqueClientLoginFinishParams
+struct OpaqueClientLoginFinishParams final {
+  ::rust::String client_login;
+  ::rust::String credential_response;
+  ::rust::String password;
+  ::rust::String client_identifier;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueClientLoginFinishParams
+
+#ifndef CXXBRIDGE1_STRUCT_OpaqueClientLoginFinishResult
+#define CXXBRIDGE1_STRUCT_OpaqueClientLoginFinishResult
+struct OpaqueClientLoginFinishResult final {
+  ::rust::String credential_finalization;
+  ::rust::String session_key;
+  ::rust::String export_key;
+  ::rust::String server_static_public_key;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueClientLoginFinishResult
+
 extern "C" {
 ::rust::repr::PtrLen cxxbridge1$opaque_client_registration_start(::rust::String *password, ::OpaqueClientRegistrationStartResult *return$) noexcept;
 
 ::rust::repr::PtrLen cxxbridge1$opaque_client_registration_finish(::OpaqueClientRegistrationFinishParams *params, ::OpaqueClientRegistrationFinishResult *return$) noexcept;
+
+::rust::repr::PtrLen cxxbridge1$opaque_client_login_start(::rust::String *password, ::OpaqueClientLoginStartResult *return$) noexcept;
+
+::rust::repr::PtrLen cxxbridge1$opaque_client_login_finish(::OpaqueClientLoginFinishParams *params, ::std::unique_ptr<::OpaqueClientLoginFinishResult> *return$) noexcept;
 } // extern "C"
 
 ::OpaqueClientRegistrationStartResult opaque_client_registration_start(::rust::String password) {
@@ -838,3 +880,47 @@ extern "C" {
   }
   return ::std::move(return$.value);
 }
+
+::OpaqueClientLoginStartResult opaque_client_login_start(::rust::String password) {
+  ::rust::MaybeUninit<::OpaqueClientLoginStartResult> return$;
+  ::rust::repr::PtrLen error$ = cxxbridge1$opaque_client_login_start(&password, &return$.value);
+  if (error$.ptr) {
+    throw ::rust::impl<::rust::Error>::error(error$);
+  }
+  return ::std::move(return$.value);
+}
+
+::std::unique_ptr<::OpaqueClientLoginFinishResult> opaque_client_login_finish(::OpaqueClientLoginFinishParams params) {
+  ::rust::ManuallyDrop<::OpaqueClientLoginFinishParams> params$(::std::move(params));
+  ::rust::MaybeUninit<::std::unique_ptr<::OpaqueClientLoginFinishResult>> return$;
+  ::rust::repr::PtrLen error$ = cxxbridge1$opaque_client_login_finish(&params$.value, &return$.value);
+  if (error$.ptr) {
+    throw ::rust::impl<::rust::Error>::error(error$);
+  }
+  return ::std::move(return$.value);
+}
+
+extern "C" {
+static_assert(sizeof(::std::unique_ptr<::OpaqueClientLoginFinishResult>) == sizeof(void *), "");
+static_assert(alignof(::std::unique_ptr<::OpaqueClientLoginFinishResult>) == alignof(void *), "");
+void cxxbridge1$unique_ptr$OpaqueClientLoginFinishResult$null(::std::unique_ptr<::OpaqueClientLoginFinishResult> *ptr) noexcept {
+  ::new (ptr) ::std::unique_ptr<::OpaqueClientLoginFinishResult>();
+}
+::OpaqueClientLoginFinishResult *cxxbridge1$unique_ptr$OpaqueClientLoginFinishResult$uninit(::std::unique_ptr<::OpaqueClientLoginFinishResult> *ptr) noexcept {
+  ::OpaqueClientLoginFinishResult *uninit = reinterpret_cast<::OpaqueClientLoginFinishResult *>(new ::rust::MaybeUninit<::OpaqueClientLoginFinishResult>);
+  ::new (ptr) ::std::unique_ptr<::OpaqueClientLoginFinishResult>(uninit);
+  return uninit;
+}
+void cxxbridge1$unique_ptr$OpaqueClientLoginFinishResult$raw(::std::unique_ptr<::OpaqueClientLoginFinishResult> *ptr, ::OpaqueClientLoginFinishResult *raw) noexcept {
+  ::new (ptr) ::std::unique_ptr<::OpaqueClientLoginFinishResult>(raw);
+}
+::OpaqueClientLoginFinishResult const *cxxbridge1$unique_ptr$OpaqueClientLoginFinishResult$get(::std::unique_ptr<::OpaqueClientLoginFinishResult> const &ptr) noexcept {
+  return ptr.get();
+}
+::OpaqueClientLoginFinishResult *cxxbridge1$unique_ptr$OpaqueClientLoginFinishResult$release(::std::unique_ptr<::OpaqueClientLoginFinishResult> &ptr) noexcept {
+  return ptr.release();
+}
+void cxxbridge1$unique_ptr$OpaqueClientLoginFinishResult$drop(::std::unique_ptr<::OpaqueClientLoginFinishResult> *ptr) noexcept {
+  ptr->~unique_ptr();
+}
+} // extern "C"

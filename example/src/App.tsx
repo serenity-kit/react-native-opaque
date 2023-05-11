@@ -57,6 +57,32 @@ async function register(
   return res.ok;
 }
 
+async function login(host: string, clientIdentifier: string, password: string) {
+  const { clientLogin, credentialRequest } = opaque.clientLoginStart(password);
+
+  const { credentialResponse } = await request('POST', `${host}/login/start`, {
+    clientIdentifier,
+    credentialRequest,
+  }).then((res) => res.json());
+
+  const loginResult = opaque.clientLoginFinish({
+    clientLogin,
+    credentialResponse,
+    clientIdentifier,
+    password,
+  });
+
+  if (!loginResult) {
+    return null;
+  }
+  const { sessionKey, credentialFinalization } = loginResult;
+  const res = await request('POST', `${host}/login/finish`, {
+    clientIdentifier,
+    credentialFinalization,
+  });
+  return res.ok ? sessionKey : null;
+}
+
 export default function App() {
   const [host, setHost] = React.useState('http://10.0.2.2:8089');
   const [username, setUsername] = React.useState('');
@@ -99,7 +125,21 @@ export default function App() {
             }
           }}
         />
-        <Button title="Login" disabled></Button>
+        <Button
+          title="Login"
+          onPress={async () => {
+            try {
+              const res = await login(host, username, password);
+              if (res) {
+                Alert.alert('Login success, session key: ' + res);
+              } else {
+                Alert.alert('Login failed');
+              }
+            } catch (err) {
+              Alert.alert('Something went wrong', '' + err);
+            }
+          }}
+        />
       </View>
     </View>
   );

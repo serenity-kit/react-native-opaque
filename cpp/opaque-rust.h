@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <initializer_list>
 #include <iterator>
+#include <memory>
 #include <new>
 #include <stdexcept>
 #include <string>
@@ -711,6 +712,9 @@ std::size_t align_of() {
 struct OpaqueClientRegistrationStartResult;
 struct OpaqueClientRegistrationFinishParams;
 struct OpaqueClientRegistrationFinishResult;
+struct OpaqueClientLoginStartResult;
+struct OpaqueClientLoginFinishParams;
+struct OpaqueClientLoginFinishResult;
 
 #ifndef CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
 #define CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
@@ -746,6 +750,44 @@ struct OpaqueClientRegistrationFinishResult final {
 };
 #endif // CXXBRIDGE1_STRUCT_OpaqueClientRegistrationFinishResult
 
+#ifndef CXXBRIDGE1_STRUCT_OpaqueClientLoginStartResult
+#define CXXBRIDGE1_STRUCT_OpaqueClientLoginStartResult
+struct OpaqueClientLoginStartResult final {
+  ::rust::String client_login;
+  ::rust::String credential_request;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueClientLoginStartResult
+
+#ifndef CXXBRIDGE1_STRUCT_OpaqueClientLoginFinishParams
+#define CXXBRIDGE1_STRUCT_OpaqueClientLoginFinishParams
+struct OpaqueClientLoginFinishParams final {
+  ::rust::String client_login;
+  ::rust::String credential_response;
+  ::rust::String password;
+  ::rust::String client_identifier;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueClientLoginFinishParams
+
+#ifndef CXXBRIDGE1_STRUCT_OpaqueClientLoginFinishResult
+#define CXXBRIDGE1_STRUCT_OpaqueClientLoginFinishResult
+struct OpaqueClientLoginFinishResult final {
+  ::rust::String credential_finalization;
+  ::rust::String session_key;
+  ::rust::String export_key;
+  ::rust::String server_static_public_key;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueClientLoginFinishResult
+
 ::OpaqueClientRegistrationStartResult opaque_client_registration_start(::rust::String password);
 
 ::OpaqueClientRegistrationFinishResult opaque_client_registration_finish(::OpaqueClientRegistrationFinishParams params);
+
+::OpaqueClientLoginStartResult opaque_client_login_start(::rust::String password);
+
+::std::unique_ptr<::OpaqueClientLoginFinishResult> opaque_client_login_finish(::OpaqueClientLoginFinishParams params);
