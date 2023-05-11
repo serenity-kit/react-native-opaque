@@ -6,7 +6,7 @@
 
 using namespace facebook;
 
-namespace Opaque
+namespace NativeOpaque
 {
 	using OpaqueFunc = std::function<jsi::Value(jsi::Runtime &, jsi::Value &)>;
 

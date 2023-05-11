@@ -20,7 +20,7 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
   }
 
   RCTLogInfo(@"calling installOpaque with cxx bridge runtime");
-  Opaque::installOpaque(*(facebook::jsi::Runtime *)cxxBridge.runtime);
+  NativeOpaque::installOpaque(*(facebook::jsi::Runtime *)cxxBridge.runtime);
   return nil;
 }
 
