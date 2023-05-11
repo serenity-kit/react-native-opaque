@@ -10,11 +10,9 @@ import {
 } from 'react-native';
 import * as opaque from 'react-native-opaque';
 
-const host = 'http://10.0.2.2:8089';
-
-async function request(method: string, path: string, body: any = undefined) {
-  console.log(`${method} ${host}${path}`, body);
-  const res = await fetch(`${host}${path}`, {
+async function request(method: string, url: string, body: any = undefined) {
+  console.log(`${method} ${url}`, body);
+  const res = await fetch(url, {
     method,
     body: body && JSON.stringify(body),
     headers: { 'Content-Type': 'application/json' },
@@ -27,13 +25,21 @@ async function request(method: string, path: string, body: any = undefined) {
   return res;
 }
 
-async function register(clientIdentifier: string, password: string) {
+async function register(
+  host: string,
+  clientIdentifier: string,
+  password: string
+) {
   const { clientRegistration, registrationRequest } =
     opaque.clientRegistrationStart(password);
-  const { registrationResponse } = await request('POST', `/register/start`, {
-    clientIdentifier,
-    registrationRequest,
-  }).then((res) => res.json());
+  const { registrationResponse } = await request(
+    'POST',
+    `${host}/register/start`,
+    {
+      clientIdentifier,
+      registrationRequest,
+    }
+  ).then((res) => res.json());
 
   console.log('registrationResponse', registrationResponse);
   const { registrationUpload } = opaque.clientRegistrationFinish({
@@ -43,7 +49,7 @@ async function register(clientIdentifier: string, password: string) {
     password,
   });
 
-  const res = await request('POST', `/register/finish`, {
+  const res = await request('POST', `${host}/register/finish`, {
     clientIdentifier,
     registrationUpload,
   });
@@ -52,12 +58,19 @@ async function register(clientIdentifier: string, password: string) {
 }
 
 export default function App() {
+  const [host, setHost] = React.useState('http://10.0.2.2:8089');
   const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
 
   return (
     <View style={styles.container}>
       <StatusBar />
+      <TextInput
+        style={styles.input}
+        placeholder="Host"
+        defaultValue={host}
+        onChangeText={(text) => setHost(text)}
+      />
       <TextInput
         style={styles.input}
         placeholder="Username"
@@ -75,7 +88,7 @@ export default function App() {
           title="Register"
           onPress={async () => {
             try {
-              const ok = await register(username, password);
+              const ok = await register(host, username, password);
               if (ok) {
                 Alert.alert('Successfully registered!');
               } else {
