@@ -1,5 +1,7 @@
 #include <jsi/jsilib.h>
 #include <jsi/jsi.h>
 
-void installOpaque(facebook::jsi::Runtime &jsiRuntime);
-void cleanUpOpaque();
+namespace NativeOpaque
+{
+    void installOpaque(facebook::jsi::Runtime &jsiRuntime);
+}

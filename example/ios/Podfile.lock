@@ -329,7 +329,7 @@ PODS:
   - React-jsinspector (0.71.6)
   - React-logger (0.71.6):
     - glog
-  - react-native-opaque (0.1.0):
+  - react-native-opaque (0.1.1):
     - React-Core
   - React-perflogger (0.71.6)
   - React-RCTActionSheet (0.71.6):
@@ -606,7 +606,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 7894956638ff3e00819dd3f9f6f4a84da38f2409
   React-jsinspector: d5ce2ef3eb8fd30c28389d0bc577918c70821bd6
   React-logger: 9332c3e7b4ef007a0211c0a9868253aac3e1da82
-  react-native-opaque: 20cb2e34243e73794bfe56e1f5cc4300b3704fbb
+  react-native-opaque: 083b9a6ad556feaf4aa1c564602eb3bd9b854767
   React-perflogger: 43392072a5b867a504e2b4857606f8fc5a403d7f
   React-RCTActionSheet: c7b67c125bebeda9fb19fc7b200d85cb9d6899c4
   React-RCTAnimation: c2de79906f607986633a7114bee44854e4c7e2f5
@@ -626,4 +626,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 98fa12498543dfdbd7821441e4bde50607a55bc2
 
-COCOAPODS: 1.11.3
+COCOAPODS: 1.12.1

@@ -1,33 +1,27 @@
 #import "Opaque.h"
 #import <React/RCTBridge+Private.h>
 #import <React/RCTUtils.h>
+#import <React/RCTLog.h>
 #import "react-native-opaque.h"
 
 @implementation Opaque
 
 @synthesize bridge=_bridge;
-@synthesize methodQueue = _methodQueue;
 
 RCT_EXPORT_MODULE()
 
-+ (BOOL)requiresMainQueueSetup {
-  return YES;
-}
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
 
-- (void)setBridge:(RCTBridge *)bridge {
-  _bridge = bridge;
-  _setBridgeOnMainQueue = RCTIsMainQueue();
-
+  RCTLogInfo(@"installing opaque");
   RCTCxxBridge *cxxBridge = (RCTCxxBridge *)self.bridge;
   if (!cxxBridge.runtime) {
-    return;
+    RCTLogInfo(@"opaque install failure: no cxx bridge runtime");
+    return nil;
   }
 
-  installOpaque(*(facebook::jsi::Runtime *)cxxBridge.runtime);
-}
-
-- (void)invalidate {
-  cleanUpOpaque();
+  RCTLogInfo(@"calling installOpaque with cxx bridge runtime");
+  NativeOpaque::installOpaque(*(facebook::jsi::Runtime *)cxxBridge.runtime);
+  return nil;
 }
 
 @end
