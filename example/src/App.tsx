@@ -1,13 +1,6 @@
 import * as React from 'react';
 
-import {
-  Alert,
-  Button,
-  StatusBar,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
+import { Alert, Button, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as opaque from 'react-native-opaque';
 
 async function request(method: string, url: string, body: any = undefined) {
@@ -90,59 +83,202 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <StatusBar />
-      <TextInput
-        style={styles.input}
-        placeholder="Host"
-        defaultValue={host}
-        onChangeText={(text) => setHost(text)}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Username"
-        defaultValue={username}
-        onChangeText={(text) => setUsername(text)}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        defaultValue={password}
-        onChangeText={(text) => setPassword(text)}
-      />
-      <View style={{ flexDirection: 'row', gap: 8 }}>
-        <Button
-          title="Register"
-          onPress={async () => {
-            try {
-              const ok = await register(host, username, password);
-              if (ok) {
-                Alert.alert('Successfully registered!');
-              } else {
-                Alert.alert('An unknown error occurred.');
-              }
-            } catch (err) {
-              Alert.alert('Something went wrong', '' + err);
-            }
-          }}
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          width: '100%',
+          gap: 8,
+        }}
+      >
+        <TextInput
+          style={styles.input}
+          placeholder="Host"
+          defaultValue={host}
+          onChangeText={(text) => setHost(text)}
         />
-        <Button
-          title="Login"
-          onPress={async () => {
-            try {
-              const res = await login(host, username, password);
-              if (res) {
-                Alert.alert('Login success, session key: ' + res);
-              } else {
-                Alert.alert('Login failed');
+        <TextInput
+          style={styles.input}
+          placeholder="Username"
+          defaultValue={username}
+          onChangeText={(text) => setUsername(text)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          defaultValue={password}
+          onChangeText={(text) => setPassword(text)}
+        />
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <Button
+            title="Register"
+            onPress={async () => {
+              try {
+                const ok = await register(host, username, password);
+                if (ok) {
+                  Alert.alert('Successfully registered!');
+                } else {
+                  Alert.alert('An unknown error occurred.');
+                }
+              } catch (err) {
+                Alert.alert('Something went wrong', '' + err);
               }
-            } catch (err) {
-              Alert.alert('Something went wrong', '' + err);
-            }
+            }}
+          />
+          <Button
+            title="Login"
+            onPress={async () => {
+              try {
+                const res = await login(host, username, password);
+                if (res) {
+                  Alert.alert('Login success, session key: ' + res);
+                } else {
+                  Alert.alert('Login failed');
+                }
+              } catch (err) {
+                Alert.alert('Something went wrong', '' + err);
+              }
+            }}
+          />
+        </View>
+      </View>
+      <View
+        style={{
+          flexDirection: 'column',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          flex: 1,
+          gap: 8,
+        }}
+      >
+        <Text style={{ textAlign: 'center' }}>
+          Run full flow in-memory demo {'\n'} (check console.log output)
+        </Text>
+        <Button
+          title="Run Demo"
+          onPress={() => {
+            const serverSetup = opaque.serverSetup();
+            runFullServerClientFlow(serverSetup, 'user123', 'hunter2');
           }}
         />
       </View>
     </View>
   );
+}
+
+function runFullServerClientFlow(
+  serverSetup: string,
+  username: string,
+  password: string
+) {
+  console.log('############################################');
+  console.log('#                                          #');
+  console.log('#   Running Demo Registration/Login Flow   #');
+  console.log('#                                          #');
+  console.log('############################################');
+
+  console.log({ serverSetup, username, password });
+
+  console.log();
+  console.log('clientRegistrationStart');
+  console.log('-----------------------');
+  const { clientRegistration, registrationRequest } =
+    opaque.clientRegistrationStart(password);
+
+  console.log({ clientRegistration, registrationRequest });
+
+  console.log();
+  console.log('serverRegistrationStart');
+  console.log('-----------------------');
+  const registrationResponse = opaque.serverRegistrationStart({
+    serverSetup,
+    registrationRequest,
+    clientIdentifier: username,
+  });
+
+  console.log({ registrationResponse });
+
+  console.log();
+  console.log('clientRegistrationFinish');
+  console.log('------------------------');
+  const {
+    registrationUpload,
+    exportKey: clientRegExportKey,
+    serverStaticPublicKey: clientRegServerStaticPublicKey,
+  } = opaque.clientRegistrationFinish({
+    clientIdentifier: username,
+    password,
+    clientRegistration,
+    registrationResponse,
+  });
+
+  console.log({ clientRegExportKey, clientRegServerStaticPublicKey });
+
+  console.log();
+  console.log('serverRegistrationFinish');
+  console.log('------------------------');
+  const passwordFile = opaque.serverRegistrationFinish(registrationUpload);
+
+  console.log({ passwordFile });
+
+  console.log();
+  console.log('clientLoginStart');
+  console.log('----------------');
+  const { clientLogin, credentialRequest } = opaque.clientLoginStart(password);
+
+  console.log({ clientLogin, credentialRequest });
+
+  console.log();
+  console.log('serverLoginStart');
+  console.log('----------------');
+  const { credentialResponse, serverLogin } = opaque.serverLoginStart({
+    clientIdentifier: username,
+    passwordFile,
+    serverSetup,
+    credentialRequest,
+  });
+
+  console.log({ credentialResponse, serverLogin });
+
+  console.log();
+  console.log('clientLoginFinish');
+  console.log('-----------------');
+  const loginResult = opaque.clientLoginFinish({
+    clientIdentifier: username,
+    clientLogin,
+    credentialResponse,
+    password,
+  });
+
+  if (loginResult == null) {
+    console.log('loginResult is NULL; login failed');
+    return;
+  }
+
+  const {
+    credentialFinalization,
+    exportKey: clientLoginExportKey,
+    serverStaticPublicKey: clientLoginServerStaticPublicKey,
+    sessionKey: clientSessionKey,
+  } = loginResult;
+
+  console.log({
+    clientLoginExportKey,
+    clientSessionKey,
+    clientLoginServerStaticPublicKey,
+    credentialFinalization,
+  });
+
+  console.log();
+  console.log('serverLoginFinish');
+  console.log('-----------------');
+  const serverSessionKey = opaque.serverLoginFinish({
+    credentialFinalization,
+    serverLogin,
+  });
+
+  console.log({ serverSessionKey });
 }
 
 const styles = StyleSheet.create({
@@ -159,6 +295,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+    padding: 32,
   },
   box: {
     width: 60,
