@@ -58,7 +58,7 @@ type ClientLoginFinishParams = {
   credentialResponse: string;
   password: string;
   clientIdentifier: string;
-  // serverIdentifier?: string; TODO
+  serverIdentifier?: string;
 };
 
 type ClientLoginFinishResult = {
