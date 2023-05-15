@@ -21,6 +21,58 @@ namespace NativeOpaque
 		return result;
 	}
 
+	std::string kindToString(const jsi::Value &v, jsi::Runtime &rt)
+	{
+		if (v.isUndefined())
+		{
+			return "undefined";
+		}
+		else if (v.isNull())
+		{
+			return "null";
+		}
+		else if (v.isBool())
+		{
+			return v.getBool() ? "true" : "false";
+		}
+		else if (v.isNumber())
+		{
+			return "a number";
+		}
+		else if (v.isString())
+		{
+			return "a string";
+		}
+		else if (v.isSymbol())
+		{
+			return "a symbol";
+		}
+		else if (v.isBigInt())
+		{
+			return "a bigint";
+		}
+		else
+		{
+			assert(v.isObject() && "Expecting object.");
+			return v.getObject(rt).isFunction(rt) ? "a function"
+												  : "an object";
+		}
+	}
+
+	jsi::String getProp(jsi::Runtime &rt, jsi::Object &obj, const char *propName)
+	{
+		if (!obj.hasProperty(rt, propName))
+		{
+			throw jsi::JSError(rt, "missing required property \"" + std::string(propName) + "\" in input params");
+		}
+		auto prop = obj.getProperty(rt, propName);
+		if (!prop.isString())
+		{
+			throw jsi::JSError(rt, "property \"" + std::string(propName) + "\" has invalid type, expected string but got " + kindToString(prop, rt));
+		}
+		return prop.getString(rt);
+	}
+
 	jsi::Value clientRegistrationStart(jsi::Runtime &rt, jsi::Value &input)
 	{
 		auto password = input.asString(rt);
@@ -36,10 +88,10 @@ namespace NativeOpaque
 		auto obj = input.asObject(rt);
 
 		struct OpaqueClientRegistrationFinishParams params = {
-			.password = obj.getProperty(rt, "password").asString(rt).utf8(rt),
-			.registration_response = obj.getProperty(rt, "registrationResponse").asString(rt).utf8(rt),
-			.client_registration = obj.getProperty(rt, "clientRegistration").asString(rt).utf8(rt),
-			.client_identifier = obj.getProperty(rt, "clientIdentifier").asString(rt).utf8(rt),
+			.password = getProp(rt, obj, "password").utf8(rt),
+			.registration_response = getProp(rt, obj, "registrationResponse").utf8(rt),
+			.client_registration = getProp(rt, obj, "clientRegistration").utf8(rt),
+			.client_identifier = getProp(rt, obj, "clientIdentifier").utf8(rt),
 			.server_identifier = getOptional(rt, obj, "serverIdentifier"),
 		};
 
@@ -64,10 +116,10 @@ namespace NativeOpaque
 	{
 		auto obj = input.asObject(rt);
 		struct OpaqueClientLoginFinishParams params = {
-			.client_login = obj.getProperty(rt, "clientLogin").asString(rt).utf8(rt),
-			.credential_response = obj.getProperty(rt, "credentialResponse").asString(rt).utf8(rt),
-			.password = obj.getProperty(rt, "password").asString(rt).utf8(rt),
-			.client_identifier = obj.getProperty(rt, "clientIdentifier").asString(rt).utf8(rt),
+			.client_login = getProp(rt, obj, "clientLogin").utf8(rt),
+			.credential_response = getProp(rt, obj, "credentialResponse").utf8(rt),
+			.password = getProp(rt, obj, "password").utf8(rt),
+			.client_identifier = getProp(rt, obj, "clientIdentifier").utf8(rt),
 			.server_identifier = getOptional(rt, obj, "serverIdentifier"),
 		};
 		auto result = opaque_client_login_finish(params);
@@ -93,9 +145,9 @@ namespace NativeOpaque
 	{
 		auto obj = input.asObject(rt);
 		struct OpaqueServerRegistrationStartParams params = {
-			.server_setup = obj.getProperty(rt, "serverSetup").asString(rt).utf8(rt),
-			.client_identifier = obj.getProperty(rt, "clientIdentifier").asString(rt).utf8(rt),
-			.registration_request = obj.getProperty(rt, "registrationRequest").asString(rt).utf8(rt),
+			.server_setup = getProp(rt, obj, "serverSetup").utf8(rt),
+			.client_identifier = getProp(rt, obj, "clientIdentifier").utf8(rt),
+			.registration_request = getProp(rt, obj, "registrationRequest").utf8(rt),
 		};
 		auto result = opaque_server_registration_start(params);
 		return jsi::String::createFromUtf8(rt, std::string(result));
@@ -112,10 +164,10 @@ namespace NativeOpaque
 		auto obj = input.asObject(rt);
 		struct OpaqueServerLoginStartParams params
 		{
-			.server_setup = obj.getProperty(rt, "serverSetup").asString(rt).utf8(rt),
-			.password_file = obj.getProperty(rt, "passwordFile").asString(rt).utf8(rt),
-			.credential_request = obj.getProperty(rt, "credentialRequest").asString(rt).utf8(rt),
-			.client_identifier = obj.getProperty(rt, "clientIdentifier").asString(rt).utf8(rt),
+			.server_setup = getProp(rt, obj, "serverSetup").utf8(rt),
+			.password_file = getProp(rt, obj, "passwordFile").utf8(rt),
+			.credential_request = getProp(rt, obj, "credentialRequest").utf8(rt),
+			.client_identifier = getProp(rt, obj, "clientIdentifier").utf8(rt),
 			.server_identifier = getOptional(rt, obj, "serverIdentifier"),
 		};
 
@@ -131,8 +183,8 @@ namespace NativeOpaque
 	{
 		auto obj = input.asObject(rt);
 		struct OpaqueServerLoginFinishParams params = {
-			.server_login = obj.getProperty(rt, "serverLogin").asString(rt).utf8(rt),
-			.credential_finalization = obj.getProperty(rt, "credentialFinalization").asString(rt).utf8(rt),
+			.server_login = getProp(rt, obj, "serverLogin").utf8(rt),
+			.credential_finalization = getProp(rt, obj, "credentialFinalization").utf8(rt),
 		};
 		auto result = opaque_server_login_finish(params);
 		return jsi::String::createFromUtf8(rt, std::string(result));
