@@ -715,6 +715,10 @@ struct OpaqueClientRegistrationFinishResult;
 struct OpaqueClientLoginStartResult;
 struct OpaqueClientLoginFinishParams;
 struct OpaqueClientLoginFinishResult;
+struct OpaqueServerRegistrationStartParams;
+struct OpaqueServerLoginStartParams;
+struct OpaqueServerLoginStartResult;
+struct OpaqueServerLoginFinishParams;
 
 #ifndef CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
 #define CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
@@ -785,6 +789,50 @@ struct OpaqueClientLoginFinishResult final {
 };
 #endif // CXXBRIDGE1_STRUCT_OpaqueClientLoginFinishResult
 
+#ifndef CXXBRIDGE1_STRUCT_OpaqueServerRegistrationStartParams
+#define CXXBRIDGE1_STRUCT_OpaqueServerRegistrationStartParams
+struct OpaqueServerRegistrationStartParams final {
+  ::rust::String server_setup;
+  ::rust::String client_identifier;
+  ::rust::String registration_request;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueServerRegistrationStartParams
+
+#ifndef CXXBRIDGE1_STRUCT_OpaqueServerLoginStartParams
+#define CXXBRIDGE1_STRUCT_OpaqueServerLoginStartParams
+struct OpaqueServerLoginStartParams final {
+  ::rust::String server_setup;
+  ::rust::String password_file;
+  ::rust::String credential_request;
+  ::rust::String client_identifier;
+  ::rust::Vec<::rust::String> server_identifier;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueServerLoginStartParams
+
+#ifndef CXXBRIDGE1_STRUCT_OpaqueServerLoginStartResult
+#define CXXBRIDGE1_STRUCT_OpaqueServerLoginStartResult
+struct OpaqueServerLoginStartResult final {
+  ::rust::String server_login;
+  ::rust::String credential_response;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueServerLoginStartResult
+
+#ifndef CXXBRIDGE1_STRUCT_OpaqueServerLoginFinishParams
+#define CXXBRIDGE1_STRUCT_OpaqueServerLoginFinishParams
+struct OpaqueServerLoginFinishParams final {
+  ::rust::String server_login;
+  ::rust::String credential_finalization;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueServerLoginFinishParams
+
 ::OpaqueClientRegistrationStartResult opaque_client_registration_start(::rust::String password);
 
 ::OpaqueClientRegistrationFinishResult opaque_client_registration_finish(::OpaqueClientRegistrationFinishParams params);
@@ -792,3 +840,13 @@ struct OpaqueClientLoginFinishResult final {
 ::OpaqueClientLoginStartResult opaque_client_login_start(::rust::String password);
 
 ::std::unique_ptr<::OpaqueClientLoginFinishResult> opaque_client_login_finish(::OpaqueClientLoginFinishParams params);
+
+::rust::String opaque_server_setup() noexcept;
+
+::rust::String opaque_server_registration_start(::OpaqueServerRegistrationStartParams params);
+
+::rust::String opaque_server_registration_finish(::rust::String message);
+
+::OpaqueServerLoginStartResult opaque_server_login_start(::OpaqueServerLoginStartParams params);
+
+::rust::String opaque_server_login_finish(::OpaqueServerLoginFinishParams params);

@@ -783,6 +783,10 @@ struct OpaqueClientRegistrationFinishResult;
 struct OpaqueClientLoginStartResult;
 struct OpaqueClientLoginFinishParams;
 struct OpaqueClientLoginFinishResult;
+struct OpaqueServerRegistrationStartParams;
+struct OpaqueServerLoginStartParams;
+struct OpaqueServerLoginStartResult;
+struct OpaqueServerLoginFinishParams;
 
 #ifndef CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
 #define CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
@@ -853,6 +857,50 @@ struct OpaqueClientLoginFinishResult final {
 };
 #endif // CXXBRIDGE1_STRUCT_OpaqueClientLoginFinishResult
 
+#ifndef CXXBRIDGE1_STRUCT_OpaqueServerRegistrationStartParams
+#define CXXBRIDGE1_STRUCT_OpaqueServerRegistrationStartParams
+struct OpaqueServerRegistrationStartParams final {
+  ::rust::String server_setup;
+  ::rust::String client_identifier;
+  ::rust::String registration_request;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueServerRegistrationStartParams
+
+#ifndef CXXBRIDGE1_STRUCT_OpaqueServerLoginStartParams
+#define CXXBRIDGE1_STRUCT_OpaqueServerLoginStartParams
+struct OpaqueServerLoginStartParams final {
+  ::rust::String server_setup;
+  ::rust::String password_file;
+  ::rust::String credential_request;
+  ::rust::String client_identifier;
+  ::rust::Vec<::rust::String> server_identifier;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueServerLoginStartParams
+
+#ifndef CXXBRIDGE1_STRUCT_OpaqueServerLoginStartResult
+#define CXXBRIDGE1_STRUCT_OpaqueServerLoginStartResult
+struct OpaqueServerLoginStartResult final {
+  ::rust::String server_login;
+  ::rust::String credential_response;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueServerLoginStartResult
+
+#ifndef CXXBRIDGE1_STRUCT_OpaqueServerLoginFinishParams
+#define CXXBRIDGE1_STRUCT_OpaqueServerLoginFinishParams
+struct OpaqueServerLoginFinishParams final {
+  ::rust::String server_login;
+  ::rust::String credential_finalization;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueServerLoginFinishParams
+
 extern "C" {
 ::rust::repr::PtrLen cxxbridge1$opaque_client_registration_start(::rust::String *password, ::OpaqueClientRegistrationStartResult *return$) noexcept;
 
@@ -861,6 +909,16 @@ extern "C" {
 ::rust::repr::PtrLen cxxbridge1$opaque_client_login_start(::rust::String *password, ::OpaqueClientLoginStartResult *return$) noexcept;
 
 ::rust::repr::PtrLen cxxbridge1$opaque_client_login_finish(::OpaqueClientLoginFinishParams *params, ::std::unique_ptr<::OpaqueClientLoginFinishResult> *return$) noexcept;
+
+void cxxbridge1$opaque_server_setup(::rust::String *return$) noexcept;
+
+::rust::repr::PtrLen cxxbridge1$opaque_server_registration_start(::OpaqueServerRegistrationStartParams *params, ::rust::String *return$) noexcept;
+
+::rust::repr::PtrLen cxxbridge1$opaque_server_registration_finish(::rust::String *message, ::rust::String *return$) noexcept;
+
+::rust::repr::PtrLen cxxbridge1$opaque_server_login_start(::OpaqueServerLoginStartParams *params, ::OpaqueServerLoginStartResult *return$) noexcept;
+
+::rust::repr::PtrLen cxxbridge1$opaque_server_login_finish(::OpaqueServerLoginFinishParams *params, ::rust::String *return$) noexcept;
 } // extern "C"
 
 ::OpaqueClientRegistrationStartResult opaque_client_registration_start(::rust::String password) {
@@ -895,6 +953,51 @@ extern "C" {
   ::rust::ManuallyDrop<::OpaqueClientLoginFinishParams> params$(::std::move(params));
   ::rust::MaybeUninit<::std::unique_ptr<::OpaqueClientLoginFinishResult>> return$;
   ::rust::repr::PtrLen error$ = cxxbridge1$opaque_client_login_finish(&params$.value, &return$.value);
+  if (error$.ptr) {
+    throw ::rust::impl<::rust::Error>::error(error$);
+  }
+  return ::std::move(return$.value);
+}
+
+::rust::String opaque_server_setup() noexcept {
+  ::rust::MaybeUninit<::rust::String> return$;
+  cxxbridge1$opaque_server_setup(&return$.value);
+  return ::std::move(return$.value);
+}
+
+::rust::String opaque_server_registration_start(::OpaqueServerRegistrationStartParams params) {
+  ::rust::ManuallyDrop<::OpaqueServerRegistrationStartParams> params$(::std::move(params));
+  ::rust::MaybeUninit<::rust::String> return$;
+  ::rust::repr::PtrLen error$ = cxxbridge1$opaque_server_registration_start(&params$.value, &return$.value);
+  if (error$.ptr) {
+    throw ::rust::impl<::rust::Error>::error(error$);
+  }
+  return ::std::move(return$.value);
+}
+
+::rust::String opaque_server_registration_finish(::rust::String message) {
+  ::rust::MaybeUninit<::rust::String> return$;
+  ::rust::repr::PtrLen error$ = cxxbridge1$opaque_server_registration_finish(&message, &return$.value);
+  if (error$.ptr) {
+    throw ::rust::impl<::rust::Error>::error(error$);
+  }
+  return ::std::move(return$.value);
+}
+
+::OpaqueServerLoginStartResult opaque_server_login_start(::OpaqueServerLoginStartParams params) {
+  ::rust::ManuallyDrop<::OpaqueServerLoginStartParams> params$(::std::move(params));
+  ::rust::MaybeUninit<::OpaqueServerLoginStartResult> return$;
+  ::rust::repr::PtrLen error$ = cxxbridge1$opaque_server_login_start(&params$.value, &return$.value);
+  if (error$.ptr) {
+    throw ::rust::impl<::rust::Error>::error(error$);
+  }
+  return ::std::move(return$.value);
+}
+
+::rust::String opaque_server_login_finish(::OpaqueServerLoginFinishParams params) {
+  ::rust::ManuallyDrop<::OpaqueServerLoginFinishParams> params$(::std::move(params));
+  ::rust::MaybeUninit<::rust::String> return$;
+  ::rust::repr::PtrLen error$ = cxxbridge1$opaque_server_login_finish(&params$.value, &return$.value);
   if (error$.ptr) {
     throw ::rust::impl<::rust::Error>::error(error$);
   }
