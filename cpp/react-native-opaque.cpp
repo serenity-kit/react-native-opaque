@@ -10,9 +10,20 @@ namespace NativeOpaque
 {
 	using OpaqueFunc = std::function<jsi::Value(jsi::Runtime &, jsi::Value &)>;
 
+	::rust::Vec<::rust::String> getOptional(jsi::Runtime &rt, jsi::Object &obj, const char *propName)
+	{
+		auto result = ::rust::Vec<::rust::String>();
+		auto prop = obj.getProperty(rt, propName);
+		if (prop.isString())
+		{
+			result.push_back(std::string(prop.getString(rt).utf8(rt)));
+		}
+		return result;
+	}
+
 	jsi::Value clientRegistrationStart(jsi::Runtime &rt, jsi::Value &input)
 	{
-		auto password = input.getString(rt);
+		auto password = input.asString(rt);
 		auto clientStartResult = opaque_client_registration_start(password.utf8(rt));
 		auto result = jsi::Object(rt);
 		result.setProperty(rt, "clientRegistration", std::string(clientStartResult.client_registration));
@@ -22,21 +33,14 @@ namespace NativeOpaque
 
 	jsi::Value clientRegistrationFinish(jsi::Runtime &rt, jsi::Value &input)
 	{
-		auto obj = input.getObject(rt);
-
-		auto serverIdent = ::rust::Vec<::rust::String>();
-		auto serverIdentProp = obj.getProperty(rt, "serverIdentifier");
-		if (serverIdentProp.isString())
-		{
-			serverIdent.push_back(std::string(serverIdentProp.getString(rt).utf8(rt)));
-		}
+		auto obj = input.asObject(rt);
 
 		struct OpaqueClientRegistrationFinishParams params = {
 			.password = obj.getProperty(rt, "password").asString(rt).utf8(rt),
 			.registration_response = obj.getProperty(rt, "registrationResponse").asString(rt).utf8(rt),
 			.client_registration = obj.getProperty(rt, "clientRegistration").asString(rt).utf8(rt),
 			.client_identifier = obj.getProperty(rt, "clientIdentifier").asString(rt).utf8(rt),
-			.server_identifier = serverIdent,
+			.server_identifier = getOptional(rt, obj, "serverIdentifier"),
 		};
 
 		auto finish = opaque_client_registration_finish(params);
@@ -49,7 +53,7 @@ namespace NativeOpaque
 
 	jsi::Value clientLoginStart(jsi::Runtime &rt, jsi::Value &input)
 	{
-		auto result = opaque_client_login_start(std::string(input.getString(rt).utf8(rt)));
+		auto result = opaque_client_login_start(std::string(input.asString(rt).utf8(rt)));
 		auto obj = jsi::Object(rt);
 		obj.setProperty(rt, "clientLogin", std::string(result.client_login));
 		obj.setProperty(rt, "credentialRequest", std::string(result.credential_request));
@@ -58,12 +62,13 @@ namespace NativeOpaque
 
 	jsi::Value clientLoginFinish(jsi::Runtime &rt, jsi::Value &input)
 	{
-		auto obj = input.getObject(rt);
+		auto obj = input.asObject(rt);
 		struct OpaqueClientLoginFinishParams params = {
 			.client_login = obj.getProperty(rt, "clientLogin").asString(rt).utf8(rt),
 			.credential_response = obj.getProperty(rt, "credentialResponse").asString(rt).utf8(rt),
 			.password = obj.getProperty(rt, "password").asString(rt).utf8(rt),
 			.client_identifier = obj.getProperty(rt, "clientIdentifier").asString(rt).utf8(rt),
+			.server_identifier = getOptional(rt, obj, "serverIdentifier"),
 		};
 		auto result = opaque_client_login_finish(params);
 		if (result == nullptr)

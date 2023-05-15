@@ -95,7 +95,7 @@ mod opaque_ffi {
         credential_response: String,
         password: String,
         client_identifier: String,
-        // server_identifier: Option<String>,
+        server_identifier: Vec<String>,
     }
 
     struct OpaqueClientLoginFinishResult {
@@ -149,6 +149,26 @@ fn opaque_client_registration_start(
     return Ok(result);
 }
 
+fn get_optional_string(ident: Vec<String>) -> Result<Option<String>, Error> {
+    match ident.len() {
+        0 => Ok(None),
+        1 => ident.get(0).map_or_else(
+            || {
+                Err(Error::Input {
+                    message: "error getting value at index 0".to_string(),
+                })
+            },
+            |x| Ok(Some(x.clone())),
+        ),
+        len => Err(Error::Input {
+            message: format!(
+                "invalid number of values, expected exactly 0 or 1 but received {}",
+                len
+            ),
+        }),
+    }
+}
+
 fn opaque_client_registration_finish(
     params: OpaqueClientRegistrationFinishParams,
 ) -> Result<OpaqueClientRegistrationFinishResult, Error> {
@@ -159,25 +179,12 @@ fn opaque_client_registration_finish(
     let state = ClientRegistration::<DefaultCipherSuite>::deserialize(&client_registration)
         .map_err(from_protocol_error("deserialize clientRegistration"))?;
 
-    let server_ident = match params.server_identifier.len() {
-        0 => Ok(None),
-        1 => params.server_identifier.get(0).map_or_else(
-            || {
-                Err(Error::Input {
-                    message: "error retrieving server_identifier".to_string(),
-                })
-            },
-            |x| Ok(Some(x)),
-        ),
-        len => Err(Error::Input {
-            message: format!("invalid number of server_identifier values, expected exactly 0 or 1 but received {}", len),
-        }),
-    }?;
+    let server_ident = get_optional_string(params.server_identifier)?;
 
     let finish_params = ClientRegistrationFinishParameters::new(
         Identifiers {
             client: Some(params.client_identifier.as_bytes()),
-            server: server_ident.map(|val| val.as_bytes()),
+            server: server_ident.as_ref().map(|val| val.as_bytes()),
         },
         None,
     );
@@ -224,12 +231,13 @@ fn opaque_client_login_finish(
     let state = ClientLogin::<DefaultCipherSuite>::deserialize(&state_bytes)
         .map_err(from_protocol_error("deserialize clientLogin"))?;
 
+    let server_ident = get_optional_string(params.server_identifier)?;
+
     let finish_params = ClientLoginFinishParameters::new(
         None,
         Identifiers {
             client: Some(params.client_identifier.as_bytes()),
-            server: None, //TODO
-                          // server: params.server_identifier.as_ref().map(|val| val.as_bytes()),
+            server: server_ident.as_ref().map(|val| val.as_bytes()),
         },
         None,
     );

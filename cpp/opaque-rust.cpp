@@ -835,6 +835,7 @@ struct OpaqueClientLoginFinishParams final {
   ::rust::String credential_response;
   ::rust::String password;
   ::rust::String client_identifier;
+  ::rust::Vec<::rust::String> server_identifier;
 
   using IsRelocatable = ::std::true_type;
 };
