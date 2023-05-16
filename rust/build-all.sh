@@ -1,6 +1,6 @@
 #!/bin/bash
 
-IOS_TARGETS="x86_64-apple-ios"
+IOS_TARGETS="x86_64-apple-ios aarch64-apple-ios aarch64-apple-ios-sim"
 ANDROID_TARGETS="i686-linux-android x86_64-linux-android aarch64-linux-android arm-linux-androideabi"
 
 for TARGET in $IOS_TARGETS
