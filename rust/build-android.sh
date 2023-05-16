@@ -18,7 +18,11 @@ API_VERSION="21"
 NDK_VERSION="23.1.7779620"
 NDK_HOST="darwin-x86_64"
 
-NDK="$ANDROID_HOME/ndk/$NDK_VERSION"
+# needed so we can overwrite it in the CI
+if [ -z "$NDK" ]; then
+  NDK="$ANDROID_HOME/ndk/$NDK_VERSION"
+fi
+
 TOOLS="$NDK/toolchains/llvm/prebuilt/$NDK_HOST"
 
 AR=$TOOLS/bin/llvm-ar \
