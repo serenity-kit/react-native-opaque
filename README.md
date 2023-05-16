@@ -46,7 +46,10 @@ Directory overview:
 ### Rust Build
 
 ```bash
+cd rust
 cargo install cxxbridge-cmd    # (if not installed already)
+rustup target add x86_64-apple-ios aarch64-apple-ios aarch64-apple-ios-sim # (if on macOS and not installed already)
+rustup target add i686-linux-android x86_64-linux-android aarch64-linux-android arm-linux-androideabi # (if not installed already)
 ./build-all.sh                 # (inside the rust directory)
 ```
 
