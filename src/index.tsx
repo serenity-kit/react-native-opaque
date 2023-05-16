@@ -70,6 +70,56 @@ type ClientLoginFinishResult = {
 
 declare function opaque_clientLoginFinish(
   params: ClientLoginFinishParams
-): ClientLoginFinishResult;
+): ClientLoginFinishResult | null;
 
 export const clientLoginFinish = opaque_clientLoginFinish;
+
+declare function opaque_serverSetup(): string;
+
+export const serverSetup = opaque_serverSetup;
+
+type ServerRegistrationStartParams = {
+  serverSetup: string;
+  clientIdentifier: string;
+  registrationRequest: string;
+};
+
+declare function opaque_serverRegistrationStart(
+  params: ServerRegistrationStartParams
+): string;
+
+export const serverRegistrationStart = opaque_serverRegistrationStart;
+
+declare function opaque_serverRegistrationFinish(message: string): string;
+
+export const serverRegistrationFinish = opaque_serverRegistrationFinish;
+
+type ServerLoginStartParams = {
+  serverSetup: string;
+  passwordFile: string;
+  credentialRequest: string;
+  clientIdentifier: string;
+  serverIdentifier?: string;
+};
+
+type ServerLoginStartResult = {
+  serverLogin: string;
+  credentialResponse: string;
+};
+
+declare function opaque_serverLoginStart(
+  params: ServerLoginStartParams
+): ServerLoginStartResult;
+
+export const serverLoginStart = opaque_serverLoginStart;
+
+type ServerLoginFinishParams = {
+  serverLogin: string;
+  credentialFinalization: string;
+};
+
+declare function opaque_serverLoginFinish(
+  params: ServerLoginFinishParams
+): string;
+
+export const serverLoginFinish = opaque_serverLoginFinish;

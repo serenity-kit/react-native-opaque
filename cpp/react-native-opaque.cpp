@@ -8,7 +8,7 @@ using namespace facebook;
 
 namespace NativeOpaque
 {
-	using OpaqueFunc = std::function<jsi::Value(jsi::Runtime &, jsi::Value &)>;
+	using OpaqueFunc1 = std::function<jsi::Value(jsi::Runtime &, jsi::Value &)>;
 
 	::rust::Vec<::rust::String> getOptional(jsi::Runtime &rt, jsi::Object &obj, const char *propName)
 	{
@@ -83,31 +83,106 @@ namespace NativeOpaque
 		return ret;
 	}
 
-	void installFunc(jsi::Runtime &rt, const std::string name, OpaqueFunc func)
+	jsi::Value serverSetup(jsi::Runtime &rt, const jsi::Value *args)
+	{
+		auto setup = opaque_server_setup();
+		return jsi::String::createFromUtf8(rt, std::string(setup));
+	}
+
+	jsi::Value serverRegistrationStart(jsi::Runtime &rt, jsi::Value &input)
+	{
+		auto obj = input.asObject(rt);
+		struct OpaqueServerRegistrationStartParams params = {
+			.server_setup = obj.getProperty(rt, "serverSetup").asString(rt).utf8(rt),
+			.client_identifier = obj.getProperty(rt, "clientIdentifier").asString(rt).utf8(rt),
+			.registration_request = obj.getProperty(rt, "registrationRequest").asString(rt).utf8(rt),
+		};
+		auto result = opaque_server_registration_start(params);
+		return jsi::String::createFromUtf8(rt, std::string(result));
+	}
+
+	jsi::Value serverRegistrationFinish(jsi::Runtime &rt, jsi::Value &input)
+	{
+		auto result = opaque_server_registration_finish(input.asString(rt).utf8(rt));
+		return jsi::String::createFromUtf8(rt, std::string(result));
+	}
+
+	jsi::Value serverLoginStart(jsi::Runtime &rt, jsi::Value &input)
+	{
+		auto obj = input.asObject(rt);
+		struct OpaqueServerLoginStartParams params
+		{
+			.server_setup = obj.getProperty(rt, "serverSetup").asString(rt).utf8(rt),
+			.password_file = obj.getProperty(rt, "passwordFile").asString(rt).utf8(rt),
+			.credential_request = obj.getProperty(rt, "credentialRequest").asString(rt).utf8(rt),
+			.client_identifier = obj.getProperty(rt, "clientIdentifier").asString(rt).utf8(rt),
+			.server_identifier = getOptional(rt, obj, "serverIdentifier"),
+		};
+
+		auto result = opaque_server_login_start(params);
+
+		auto ret = jsi::Object(rt);
+		ret.setProperty(rt, "serverLogin", std::string(result.server_login));
+		ret.setProperty(rt, "credentialResponse", std::string(result.credential_response));
+		return ret;
+	}
+
+	jsi::Value serverLoginFinish(jsi::Runtime &rt, jsi::Value &input)
+	{
+		auto obj = input.asObject(rt);
+		struct OpaqueServerLoginFinishParams params = {
+			.server_login = obj.getProperty(rt, "serverLogin").asString(rt).utf8(rt),
+			.credential_finalization = obj.getProperty(rt, "credentialFinalization").asString(rt).utf8(rt),
+		};
+		auto result = opaque_server_login_finish(params);
+		return jsi::String::createFromUtf8(rt, std::string(result));
+	}
+
+	using OpaqueFuncN = std::function<jsi::Value(jsi::Runtime &, const jsi::Value *args)>;
+
+	void installFunc(jsi::Runtime &rt, const std::string name, unsigned int paramCount, OpaqueFuncN func)
 	{
 		auto propName = jsi::PropNameID::forAscii(rt, name);
 		auto jsiFunc = jsi::Function::createFromHostFunction(
 			rt,
 			propName,
-			1,
-			[func](jsi::Runtime &rt, const jsi::Value &self, const jsi::Value *args, size_t count) -> jsi::Value
+			paramCount,
+			[func, paramCount](jsi::Runtime &rt, const jsi::Value &self, const jsi::Value *args, size_t count) -> jsi::Value
 			{
-				if (count != 1)
+				if (count != paramCount)
 				{
-					throw std::runtime_error("expected 1 arg");
+					throw std::runtime_error("invalid number of arguments");
 				}
-				auto input = jsi::Value(rt, args[0]);
-				return func(rt, input);
+				return func(rt, args);
 			});
 
 		rt.global().setProperty(rt, propName, std::move(jsiFunc));
 	}
 
+	void installFunc1(jsi::Runtime &rt, const std::string name, OpaqueFunc1 func)
+	{
+		installFunc(
+			rt,
+			name,
+			1,
+			[func](jsi::Runtime &rt, const jsi::Value *args) -> jsi::Value
+			{
+				auto input = jsi::Value(rt, args[0]);
+				return func(rt, input);
+			});
+	}
+
 	void installOpaque(jsi::Runtime &rt)
 	{
-		installFunc(rt, "opaque_clientRegistrationStart", clientRegistrationStart);
-		installFunc(rt, "opaque_clientRegistrationFinish", clientRegistrationFinish);
-		installFunc(rt, "opaque_clientLoginStart", clientLoginStart);
-		installFunc(rt, "opaque_clientLoginFinish", clientLoginFinish);
+		installFunc1(rt, "opaque_clientRegistrationStart", clientRegistrationStart);
+		installFunc1(rt, "opaque_clientRegistrationFinish", clientRegistrationFinish);
+		installFunc1(rt, "opaque_clientLoginStart", clientLoginStart);
+		installFunc1(rt, "opaque_clientLoginFinish", clientLoginFinish);
+
+		installFunc(rt, "opaque_serverSetup", 0, serverSetup);
+		installFunc1(rt, "opaque_serverRegistrationStart", serverRegistrationStart);
+		installFunc1(rt, "opaque_serverRegistrationFinish", serverRegistrationFinish);
+		installFunc1(rt, "opaque_serverLoginStart", serverLoginStart);
+		installFunc1(rt, "opaque_serverLoginFinish", serverLoginFinish);
 	}
 }
