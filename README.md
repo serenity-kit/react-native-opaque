@@ -81,6 +81,8 @@ The `CMakeLists.txt` includes the `cpp/` source and links with the appropriate r
 After the rust library is built you can run
 
 ```bash
+# list our emulators e.g. emulator -list-avds
+# start the emulator e.g. emulator @Pixel_3a_API_33_arm64-v8a
 yarn example android
 ```
 
