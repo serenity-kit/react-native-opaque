@@ -18,7 +18,7 @@ jobs:
           ndk-version: r23b
       - name: Add iOS targets
         working-directory: rust
-        run: rustup target add x86_64-apple-ios aarch64-apple-ios
+        run: rustup target add x86_64-apple-ios aarch64-apple-ios aarch64-apple-ios-sim
       - name: Add Android targets
         working-directory: rust
         run: rustup target add i686-linux-android x86_64-linux-android aarch64-linux-android arm-linux-androideabi
