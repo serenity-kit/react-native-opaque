@@ -42,6 +42,10 @@ android {
       cmake {
         cppFlags "-O2 -frtti -fexceptions -Wall -fstack-protector-all"
         abiFilters "x86", "x86_64", "armeabi-v7a", "arm64-v8a"
+        // defaults to c++_static but we need to use the shared version to make 
+        // exceptions (and other STL types) across shared object boundaries work
+        // correctly.
+        // see https://developer.android.com/ndk/guides/cpp-support#selecting_a_c_runtime
         arguments "-DANDROID_STL=c++_shared"
       }
     }
