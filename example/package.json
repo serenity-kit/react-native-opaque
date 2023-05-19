@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "android": "react-native run-android",
+    "android-release": "react-native run-android --mode Release",
     "ios": "react-native run-ios",
     "start": "react-native start",
     "pods": "pod-install --quiet",
