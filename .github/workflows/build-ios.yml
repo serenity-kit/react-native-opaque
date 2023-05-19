@@ -83,3 +83,6 @@ jobs:
           -destination 'platform=iOS Simulator,name=iPhone 11' \
           build \
           CODE_SIGNING_ALLOWED=NO | xcpretty"
+      # - name: Build iOS App
+      #   working-directory: example
+      #   run: yarn ios
