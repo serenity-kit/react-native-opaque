@@ -115,7 +115,7 @@ mod opaque_ffi {
 
     struct OpaqueServerLoginStartParams {
         server_setup: String,
-        password_file: String,
+        password_file: Vec<String>,
         credential_request: String,
         client_identifier: String,
         server_identifier: Vec<String>,
@@ -206,12 +206,22 @@ fn opaque_server_login_start(
     params: OpaqueServerLoginStartParams,
 ) -> Result<OpaqueServerLoginStartResult, Error> {
     let server_setup = decode_server_setup(params.server_setup)?;
-    let password_file_bytes = base64_decode("passwordFile", params.password_file)?;
+    let password_file_param = get_optional_string(params.password_file)?;
+    let password_file_bytes = match password_file_param {
+        Some(pw) => base64_decode("passwordFile", pw).map(|val| Some(val)),
+        None => Ok(None),
+    }?;
     let credential_request_bytes = base64_decode("credentialRequest", params.credential_request)?;
 
     let mut rng: OsRng = OsRng;
-    let password_file = ServerRegistration::<DefaultCipherSuite>::deserialize(&password_file_bytes)
-        .map_err(from_protocol_error("deserialize passwordFile"))?;
+
+    let password_file = match password_file_bytes.as_ref() {
+        Some(bytes) => Some(
+            ServerRegistration::<DefaultCipherSuite>::deserialize(bytes)
+                .map_err(from_protocol_error("deserialize passwordFile"))?,
+        ),
+        None => None,
+    };
 
     let server_ident = get_optional_string(params.server_identifier)?;
 
@@ -226,7 +236,7 @@ fn opaque_server_login_start(
     let server_login_start_result = ServerLogin::start(
         &mut rng,
         &server_setup,
-        Some(password_file),
+        password_file,
         CredentialRequest::deserialize(&credential_request_bytes)
             .map_err(from_protocol_error("deserialize credentialRequest"))?,
         params.client_identifier.as_bytes(),

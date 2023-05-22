@@ -165,7 +165,7 @@ namespace NativeOpaque
 		struct OpaqueServerLoginStartParams params
 		{
 			.server_setup = getProp(rt, obj, "serverSetup").utf8(rt),
-			.password_file = getProp(rt, obj, "passwordFile").utf8(rt),
+			.password_file = getOptional(rt, obj, "passwordFile"),
 			.credential_request = getProp(rt, obj, "credentialRequest").utf8(rt),
 			.client_identifier = getProp(rt, obj, "clientIdentifier").utf8(rt),
 			.server_identifier = getOptional(rt, obj, "serverIdentifier"),
