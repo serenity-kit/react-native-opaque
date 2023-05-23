@@ -96,7 +96,7 @@ export const serverRegistrationFinish = opaque_serverRegistrationFinish;
 
 type ServerLoginStartParams = {
   serverSetup: string;
-  passwordFile: string;
+  passwordFile: string | undefined;
   credentialRequest: string;
   clientIdentifier: string;
   serverIdentifier?: string;

@@ -872,7 +872,7 @@ struct OpaqueServerRegistrationStartParams final {
 #define CXXBRIDGE1_STRUCT_OpaqueServerLoginStartParams
 struct OpaqueServerLoginStartParams final {
   ::rust::String server_setup;
-  ::rust::String password_file;
+  ::rust::Vec<::rust::String> password_file;
   ::rust::String credential_request;
   ::rust::String client_identifier;
   ::rust::Vec<::rust::String> server_identifier;
