@@ -11,6 +11,11 @@ if (Opaque && typeof Opaque.install === 'function') {
   console.warn('Opaque.install not a function');
 }
 
+type CustomIdentifiers = {
+  client?: string;
+  server?: string;
+};
+
 type ClientRegistrationStartResult = {
   clientRegistration: string;
   registrationRequest: string;
@@ -26,8 +31,7 @@ type ClientRegistrationFinishParams = {
   password: string;
   registrationResponse: string;
   clientRegistration: string;
-  clientIdentifier?: string;
-  serverIdentifier?: string;
+  identifiers?: CustomIdentifiers;
 };
 
 type ClientRegistrationFinishResult = {
@@ -57,8 +61,7 @@ type ClientLoginFinishParams = {
   clientLogin: string;
   credentialResponse: string;
   password: string;
-  clientIdentifier?: string;
-  serverIdentifier?: string;
+  identifiers?: CustomIdentifiers;
 };
 
 type ClientLoginFinishResult = {
@@ -99,8 +102,7 @@ type ServerLoginStartParams = {
   passwordFile: string | undefined;
   credentialRequest: string;
   credentialIdentifier: string;
-  clientIdentifier?: string;
-  serverIdentifier?: string;
+  identifiers?: CustomIdentifiers;
 };
 
 type ServerLoginStartResult = {
