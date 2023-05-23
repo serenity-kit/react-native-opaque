@@ -26,7 +26,7 @@ type ClientRegistrationFinishParams = {
   password: string;
   registrationResponse: string;
   clientRegistration: string;
-  clientIdentifier: string;
+  clientIdentifier?: string;
   serverIdentifier?: string;
 };
 
@@ -57,7 +57,7 @@ type ClientLoginFinishParams = {
   clientLogin: string;
   credentialResponse: string;
   password: string;
-  clientIdentifier: string;
+  clientIdentifier?: string;
   serverIdentifier?: string;
 };
 
@@ -80,7 +80,7 @@ export const serverSetup = opaque_serverSetup;
 
 type ServerRegistrationStartParams = {
   serverSetup: string;
-  clientIdentifier: string;
+  credentialIdentifier: string;
   registrationRequest: string;
 };
 
@@ -98,7 +98,8 @@ type ServerLoginStartParams = {
   serverSetup: string;
   passwordFile: string | undefined;
   credentialRequest: string;
-  clientIdentifier: string;
+  credentialIdentifier: string;
+  clientIdentifier?: string;
   serverIdentifier?: string;
 };
 

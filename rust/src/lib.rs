@@ -77,7 +77,7 @@ mod opaque_ffi {
         password: String,
         registration_response: String,
         client_registration: String,
-        client_identifier: String,
+        client_identifier: Vec<String>,
         server_identifier: Vec<String>,
     }
 
@@ -96,7 +96,7 @@ mod opaque_ffi {
         client_login: String,
         credential_response: String,
         password: String,
-        client_identifier: String,
+        client_identifier: Vec<String>,
         server_identifier: Vec<String>,
     }
 
@@ -109,7 +109,7 @@ mod opaque_ffi {
 
     struct OpaqueServerRegistrationStartParams {
         server_setup: String,
-        client_identifier: String,
+        credential_identifier: String,
         registration_request: String,
     }
 
@@ -117,7 +117,8 @@ mod opaque_ffi {
         server_setup: String,
         password_file: Vec<String>,
         credential_request: String,
-        client_identifier: String,
+        credential_identifier: String,
+        client_identifier: Vec<String>,
         server_identifier: Vec<String>,
     }
 
@@ -186,7 +187,7 @@ fn opaque_server_registration_start(
         &server_setup,
         RegistrationRequest::deserialize(&registration_request_bytes)
             .map_err(from_protocol_error("deserialize registrationRequest"))?,
-        params.client_identifier.as_bytes(),
+        params.credential_identifier.as_bytes(),
     )
     .map_err(from_protocol_error("start serverRegistration"))?;
     let registration_response_bytes = server_registration_start_result.message.serialize();
@@ -224,10 +225,11 @@ fn opaque_server_login_start(
     };
 
     let server_ident = get_optional_string(params.server_identifier)?;
+    let client_ident = get_optional_string(params.client_identifier)?;
 
     let start_params = ServerLoginStartParameters {
         identifiers: Identifiers {
-            client: Some(params.client_identifier.as_bytes()),
+            client: client_ident.as_ref().map(|val| val.as_bytes()),
             server: server_ident.as_ref().map(|val| val.as_bytes()),
         },
         context: None,
@@ -239,7 +241,7 @@ fn opaque_server_login_start(
         password_file,
         CredentialRequest::deserialize(&credential_request_bytes)
             .map_err(from_protocol_error("deserialize credentialRequest"))?,
-        params.client_identifier.as_bytes(),
+        params.credential_identifier.as_bytes(),
         start_params,
     )
     .map_err(from_protocol_error("start serverLogin"))?;
@@ -328,10 +330,11 @@ fn opaque_client_registration_finish(
         .map_err(from_protocol_error("deserialize clientRegistration"))?;
 
     let server_ident = get_optional_string(params.server_identifier)?;
+    let client_ident = get_optional_string(params.client_identifier)?;
 
     let finish_params = ClientRegistrationFinishParameters::new(
         Identifiers {
-            client: Some(params.client_identifier.as_bytes()),
+            client: client_ident.as_ref().map(|val| val.as_bytes()),
             server: server_ident.as_ref().map(|val| val.as_bytes()),
         },
         None,
@@ -380,11 +383,12 @@ fn opaque_client_login_finish(
         .map_err(from_protocol_error("deserialize clientLogin"))?;
 
     let server_ident = get_optional_string(params.server_identifier)?;
+    let client_ident = get_optional_string(params.client_identifier)?;
 
     let finish_params = ClientLoginFinishParameters::new(
         None,
         Identifiers {
-            client: Some(params.client_identifier.as_bytes()),
+            client: client_ident.as_ref().map(|val| val.as_bytes()),
             server: server_ident.as_ref().map(|val| val.as_bytes()),
         },
         None,
