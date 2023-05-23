@@ -83,6 +83,29 @@ namespace NativeOpaque
 		return result;
 	}
 
+	::rust::Vec<::rust::String> getIdentifier(jsi::Runtime &rt, jsi::Object &obj, const char *name)
+	{
+		auto result = ::rust::Vec<::rust::String>();
+		if (!obj.hasProperty(rt, "identifiers"))
+			return result;
+		auto identsProp = obj.getProperty(rt, "identifiers");
+		if (!identsProp.isObject())
+		{
+			throw jsi::JSError(rt, "\"identifiers\" must be an object");
+		}
+		auto identsObj = identsProp.asObject(rt);
+		if (identsObj.hasProperty(rt, name))
+		{
+			auto prop = identsObj.getProperty(rt, name);
+			if (!prop.isString())
+			{
+				throw jsi::JSError(rt, "identifier \"" + std::string(name) + "\" must be a string");
+			}
+			result.push_back(std::string(prop.asString(rt).utf8(rt)));
+		}
+		return result;
+	}
+
 	jsi::Value clientRegistrationFinish(jsi::Runtime &rt, jsi::Value &input)
 	{
 		auto obj = input.asObject(rt);
@@ -91,8 +114,8 @@ namespace NativeOpaque
 			.password = getProp(rt, obj, "password").utf8(rt),
 			.registration_response = getProp(rt, obj, "registrationResponse").utf8(rt),
 			.client_registration = getProp(rt, obj, "clientRegistration").utf8(rt),
-			.client_identifier = getProp(rt, obj, "clientIdentifier").utf8(rt),
-			.server_identifier = getOptional(rt, obj, "serverIdentifier"),
+			.client_identifier = getIdentifier(rt, obj, "client"),
+			.server_identifier = getIdentifier(rt, obj, "server"),
 		};
 
 		auto finish = opaque_client_registration_finish(params);
@@ -119,8 +142,8 @@ namespace NativeOpaque
 			.client_login = getProp(rt, obj, "clientLogin").utf8(rt),
 			.credential_response = getProp(rt, obj, "credentialResponse").utf8(rt),
 			.password = getProp(rt, obj, "password").utf8(rt),
-			.client_identifier = getProp(rt, obj, "clientIdentifier").utf8(rt),
-			.server_identifier = getOptional(rt, obj, "serverIdentifier"),
+			.client_identifier = getIdentifier(rt, obj, "client"),
+			.server_identifier = getIdentifier(rt, obj, "server"),
 		};
 		auto result = opaque_client_login_finish(params);
 		if (result == nullptr)
@@ -146,7 +169,7 @@ namespace NativeOpaque
 		auto obj = input.asObject(rt);
 		struct OpaqueServerRegistrationStartParams params = {
 			.server_setup = getProp(rt, obj, "serverSetup").utf8(rt),
-			.client_identifier = getProp(rt, obj, "clientIdentifier").utf8(rt),
+			.credential_identifier = getProp(rt, obj, "credentialIdentifier").utf8(rt),
 			.registration_request = getProp(rt, obj, "registrationRequest").utf8(rt),
 		};
 		auto result = opaque_server_registration_start(params);
@@ -167,8 +190,9 @@ namespace NativeOpaque
 			.server_setup = getProp(rt, obj, "serverSetup").utf8(rt),
 			.password_file = getOptional(rt, obj, "passwordFile"),
 			.credential_request = getProp(rt, obj, "credentialRequest").utf8(rt),
-			.client_identifier = getProp(rt, obj, "clientIdentifier").utf8(rt),
-			.server_identifier = getOptional(rt, obj, "serverIdentifier"),
+			.credential_identifier = getProp(rt, obj, "credentialIdentifier").utf8(rt),
+			.client_identifier = getIdentifier(rt, obj, "client"),
+			.server_identifier = getIdentifier(rt, obj, "server"),
 		};
 
 		auto result = opaque_server_login_start(params);

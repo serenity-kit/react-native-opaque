@@ -804,7 +804,7 @@ struct OpaqueClientRegistrationFinishParams final {
   ::rust::String password;
   ::rust::String registration_response;
   ::rust::String client_registration;
-  ::rust::String client_identifier;
+  ::rust::Vec<::rust::String> client_identifier;
   ::rust::Vec<::rust::String> server_identifier;
 
   using IsRelocatable = ::std::true_type;
@@ -838,7 +838,7 @@ struct OpaqueClientLoginFinishParams final {
   ::rust::String client_login;
   ::rust::String credential_response;
   ::rust::String password;
-  ::rust::String client_identifier;
+  ::rust::Vec<::rust::String> client_identifier;
   ::rust::Vec<::rust::String> server_identifier;
 
   using IsRelocatable = ::std::true_type;
@@ -861,7 +861,7 @@ struct OpaqueClientLoginFinishResult final {
 #define CXXBRIDGE1_STRUCT_OpaqueServerRegistrationStartParams
 struct OpaqueServerRegistrationStartParams final {
   ::rust::String server_setup;
-  ::rust::String client_identifier;
+  ::rust::String credential_identifier;
   ::rust::String registration_request;
 
   using IsRelocatable = ::std::true_type;
@@ -874,7 +874,8 @@ struct OpaqueServerLoginStartParams final {
   ::rust::String server_setup;
   ::rust::Vec<::rust::String> password_file;
   ::rust::String credential_request;
-  ::rust::String client_identifier;
+  ::rust::String credential_identifier;
+  ::rust::Vec<::rust::String> client_identifier;
   ::rust::Vec<::rust::String> server_identifier;
 
   using IsRelocatable = ::std::true_type;
