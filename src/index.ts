@@ -126,3 +126,6 @@ declare function opaque_serverLoginFinish(
 ): string;
 
 export const serverLoginFinish = opaque_serverLoginFinish;
+
+// needed for web version to indicate when the module has been loaded since WASM is async
+export const ready = Promise.resolve();
