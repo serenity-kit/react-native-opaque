@@ -18,6 +18,54 @@ const { clientRegistration, registrationRequest } =
 // ...
 ```
 
+## Usage with React Native Web
+
+Since on web the package uses Web Assembly under the hood, it needs to be loaded asynchronously. To offer the same API the module is loaded internally, but in addition the API offers a `ready` Promise that will resolve once the module is loaded and ready to be used.
+
+```ts
+import * as opaque from 'react-native-opaque';
+
+opaque.ready.then(() => {
+  const { clientRegistration, registrationRequest } =
+    opaque.clientRegistrationStart('hunter2');
+  // ...
+});
+```
+
+The most convenient way to use this is to have loading page that waits for the `ready` Promise to resolve before rendering the actual app.
+
+For example:
+
+```tsx
+export default function LoadingApp() {
+  const [opaqueModuleStatus, setOpaqueModuleStatus] = React.useState<
+    'loading' | 'failed' | 'loaded'
+  >('loading');
+
+  React.useEffect(() => {
+    async function waitForOpaque() {
+      try {
+        await opaque.ready;
+        setOpaqueModuleStatus('loaded');
+      } catch (e) {
+        console.warn(e);
+        setOpaqueModuleStatus('failed');
+      }
+    }
+
+    waitForOpaque();
+  }, []);
+
+  if (opaqueModuleStatus === 'loading') return null;
+  if (opaqueModuleStatus === 'failed')
+    return <Text>Failed to load resources. Please reload the app.</Text>;
+
+  return <App />;
+}
+```
+
+Note: The `ready` Promise resolves right away on the native side.
+
 ## Build Setup
 
 Directory overview:

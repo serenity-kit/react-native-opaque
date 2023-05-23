@@ -78,7 +78,7 @@ async function login(
   return res.ok ? sessionKey : null;
 }
 
-export default function App() {
+function App() {
   const [host, setHost] = React.useState('http://10.0.2.2:8089');
   const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -167,6 +167,32 @@ export default function App() {
       </View>
     </View>
   );
+}
+
+export default function LoadingApp() {
+  const [opaqueModuleStatus, setOpaqueModuleStatus] = React.useState<
+    'loading' | 'failed' | 'loaded'
+  >('loading');
+
+  React.useEffect(() => {
+    async function waitForOpaque() {
+      try {
+        await opaque.ready;
+        setOpaqueModuleStatus('loaded');
+      } catch (e) {
+        console.warn(e);
+        setOpaqueModuleStatus('failed');
+      }
+    }
+
+    waitForOpaque();
+  }, []);
+
+  if (opaqueModuleStatus === 'loading') return null;
+  if (opaqueModuleStatus === 'failed')
+    return <Text>Failed to load resources. Please reload the app.</Text>;
+
+  return <App />;
 }
 
 function runFullServerClientFlow(
