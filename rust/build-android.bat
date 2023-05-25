@@ -25,4 +25,4 @@ set CXX=%TOOLS%\bin\%NDK_TARGET%%API_VERSION%-clang++
 set RANLIB=%TOOLS%\bin\llvm-ranlib
 set CXXFLAGS=--target=%NDK_TARGET%
 
-cargo build --target %TARGET% -v
+cargo build --target %TARGET% %EXTRA_ARGS%

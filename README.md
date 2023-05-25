@@ -101,6 +101,13 @@ rustup target add i686-linux-android x86_64-linux-android aarch64-linux-android 
 ./build-all.sh                 # (inside the rust directory)
 ```
 
+To pass additional arguments to cargo you can set the `EXTRA_ARGS` env variable.
+For example, to do a release build with p256 feature:
+
+```bash
+EXTRA_ARGS="--feature p256 --release" ./build-all.sh
+```
+
 We use the cxx crate to generate the glue code to expose a C++ interface from rust.
 The cxx crate itself includes a C++ build step in its own build script.
 Unfortunately cross-compilation for Android requires special care to use the NDK toolchain and it is currently not possible to set up target specific environment variables in a cargo config.
