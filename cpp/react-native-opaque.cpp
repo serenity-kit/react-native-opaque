@@ -158,9 +158,9 @@ namespace NativeOpaque
 		return ret;
 	}
 
-	jsi::Value serverSetup(jsi::Runtime &rt, const jsi::Value *args)
+	jsi::Value createServerSetup(jsi::Runtime &rt, const jsi::Value *args)
 	{
-		auto setup = opaque_server_setup();
+		auto setup = opaque_create_server_setup();
 		return jsi::String::createFromUtf8(rt, std::string(setup));
 	}
 
@@ -169,7 +169,7 @@ namespace NativeOpaque
 		auto obj = input.asObject(rt);
 		struct OpaqueServerRegistrationStartParams params = {
 			.server_setup = getProp(rt, obj, "serverSetup").utf8(rt),
-			.credential_identifier = getProp(rt, obj, "credentialIdentifier").utf8(rt),
+			.user_identifier = getProp(rt, obj, "userIdentifier").utf8(rt),
 			.registration_request = getProp(rt, obj, "registrationRequest").utf8(rt),
 		};
 		auto result = opaque_server_registration_start(params);
@@ -190,7 +190,7 @@ namespace NativeOpaque
 			.server_setup = getProp(rt, obj, "serverSetup").utf8(rt),
 			.password_file = getOptional(rt, obj, "passwordFile"),
 			.credential_request = getProp(rt, obj, "credentialRequest").utf8(rt),
-			.credential_identifier = getProp(rt, obj, "credentialIdentifier").utf8(rt),
+			.user_identifier = getProp(rt, obj, "userIdentifier").utf8(rt),
 			.client_identifier = getIdentifier(rt, obj, "client"),
 			.server_identifier = getIdentifier(rt, obj, "server"),
 		};
@@ -255,7 +255,7 @@ namespace NativeOpaque
 		installFunc1(rt, "opaque_clientLoginStart", clientLoginStart);
 		installFunc1(rt, "opaque_clientLoginFinish", clientLoginFinish);
 
-		installFunc(rt, "opaque_serverSetup", 0, serverSetup);
+		installFunc(rt, "opaque_createServerSetup", 0, createServerSetup);
 		installFunc1(rt, "opaque_serverRegistrationStart", serverRegistrationStart);
 		installFunc1(rt, "opaque_serverRegistrationFinish", serverRegistrationFinish);
 		installFunc1(rt, "opaque_serverLoginStart", serverLoginStart);

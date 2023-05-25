@@ -861,7 +861,7 @@ struct OpaqueClientLoginFinishResult final {
 #define CXXBRIDGE1_STRUCT_OpaqueServerRegistrationStartParams
 struct OpaqueServerRegistrationStartParams final {
   ::rust::String server_setup;
-  ::rust::String credential_identifier;
+  ::rust::String user_identifier;
   ::rust::String registration_request;
 
   using IsRelocatable = ::std::true_type;
@@ -874,7 +874,7 @@ struct OpaqueServerLoginStartParams final {
   ::rust::String server_setup;
   ::rust::Vec<::rust::String> password_file;
   ::rust::String credential_request;
-  ::rust::String credential_identifier;
+  ::rust::String user_identifier;
   ::rust::Vec<::rust::String> client_identifier;
   ::rust::Vec<::rust::String> server_identifier;
 
@@ -911,7 +911,7 @@ extern "C" {
 
 ::rust::repr::PtrLen cxxbridge1$opaque_client_login_finish(::OpaqueClientLoginFinishParams *params, ::std::unique_ptr<::OpaqueClientLoginFinishResult> *return$) noexcept;
 
-void cxxbridge1$opaque_server_setup(::rust::String *return$) noexcept;
+void cxxbridge1$opaque_create_server_setup(::rust::String *return$) noexcept;
 
 ::rust::repr::PtrLen cxxbridge1$opaque_server_registration_start(::OpaqueServerRegistrationStartParams *params, ::rust::String *return$) noexcept;
 
@@ -960,9 +960,9 @@ void cxxbridge1$opaque_server_setup(::rust::String *return$) noexcept;
   return ::std::move(return$.value);
 }
 
-::rust::String opaque_server_setup() noexcept {
+::rust::String opaque_create_server_setup() noexcept {
   ::rust::MaybeUninit<::rust::String> return$;
-  cxxbridge1$opaque_server_setup(&return$.value);
+  cxxbridge1$opaque_create_server_setup(&return$.value);
   return ::std::move(return$.value);
 }
 

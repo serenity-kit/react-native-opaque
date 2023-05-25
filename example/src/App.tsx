@@ -20,7 +20,7 @@ async function request(method: string, url: string, body: any = undefined) {
 
 async function register(
   host: string,
-  credentialIdentifier: string,
+  userIdentifier: string,
   password: string
 ) {
   const { clientRegistration, registrationRequest } =
@@ -29,7 +29,7 @@ async function register(
     'POST',
     `${host}/register/start`,
     {
-      credentialIdentifier,
+      userIdentifier,
       registrationRequest,
     }
   ).then((res) => res.json());
@@ -42,22 +42,18 @@ async function register(
   });
 
   const res = await request('POST', `${host}/register/finish`, {
-    credentialIdentifier,
+    userIdentifier,
     registrationUpload,
   });
   console.log('finish successful', res.ok);
   return res.ok;
 }
 
-async function login(
-  host: string,
-  credentialIdentifier: string,
-  password: string
-) {
+async function login(host: string, userIdentifier: string, password: string) {
   const { clientLogin, credentialRequest } = opaque.clientLoginStart(password);
 
   const { credentialResponse } = await request('POST', `${host}/login/start`, {
-    credentialIdentifier,
+    userIdentifier,
     credentialRequest,
   }).then((res) => res.json());
 
@@ -72,7 +68,7 @@ async function login(
   }
   const { sessionKey, credentialFinalization } = loginResult;
   const res = await request('POST', `${host}/login/finish`, {
-    credentialIdentifier,
+    userIdentifier,
     credentialFinalization,
   });
   return res.ok ? sessionKey : null;
@@ -160,7 +156,7 @@ function App() {
         <Button
           title="Run Demo"
           onPress={() => {
-            const serverSetup = opaque.serverSetup();
+            const serverSetup = opaque.createServerSetup();
             runFullServerClientFlow(serverSetup, 'user123', 'hunter2');
           }}
         />
@@ -222,7 +218,7 @@ function runFullServerClientFlow(
   const registrationResponse = opaque.serverRegistrationStart({
     serverSetup,
     registrationRequest,
-    credentialIdentifier: username,
+    userIdentifier: username,
   });
 
   console.log({ registrationResponse });
@@ -260,7 +256,7 @@ function runFullServerClientFlow(
   console.log('serverLoginStart');
   console.log('----------------');
   const { credentialResponse, serverLogin } = opaque.serverLoginStart({
-    credentialIdentifier: username,
+    userIdentifier: username,
     passwordFile,
     serverSetup,
     credentialRequest,

@@ -77,13 +77,13 @@ declare function opaque_clientLoginFinish(
 
 export const clientLoginFinish = opaque_clientLoginFinish;
 
-declare function opaque_serverSetup(): string;
+declare function opaque_createServerSetup(): string;
 
-export const serverSetup = opaque_serverSetup;
+export const createServerSetup = opaque_createServerSetup;
 
 type ServerRegistrationStartParams = {
   serverSetup: string;
-  credentialIdentifier: string;
+  userIdentifier: string;
   registrationRequest: string;
 };
 
@@ -99,9 +99,9 @@ export const serverRegistrationFinish = opaque_serverRegistrationFinish;
 
 type ServerLoginStartParams = {
   serverSetup: string;
-  passwordFile: string | undefined;
+  passwordFile: string | null | undefined;
   credentialRequest: string;
-  credentialIdentifier: string;
+  userIdentifier: string;
   identifiers?: CustomIdentifiers;
 };
 
