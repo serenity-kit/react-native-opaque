@@ -4,10 +4,10 @@ const isReady = import('@serenity-kit/opaque').then((newModule) => {
   opaqueModule = newModule;
 });
 
-export const createServerSetup: (typeof opaqueModule)['serverSetup'] = (
+export const createServerSetup: (typeof opaqueModule)['createServerSetup'] = (
   ...args
 ) => {
-  return opaqueModule.serverSetup(...args);
+  return opaqueModule.createServerSetup(...args);
 };
 
 export const clientRegistrationStart: (typeof opaqueModule)['clientRegistrationStart'] =
