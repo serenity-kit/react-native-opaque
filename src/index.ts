@@ -99,7 +99,7 @@ export const serverRegistrationFinish = opaque_serverRegistrationFinish;
 
 type ServerLoginStartParams = {
   serverSetup: string;
-  passwordFile: string | undefined;
+  passwordFile: string | null | undefined;
   credentialRequest: string;
   userIdentifier: string;
   identifiers?: CustomIdentifiers;
