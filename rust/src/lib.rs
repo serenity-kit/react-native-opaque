@@ -118,7 +118,7 @@ mod opaque_ffi {
 
     struct OpaqueServerRegistrationStartParams {
         server_setup: String,
-        credential_identifier: String,
+        user_identifier: String,
         registration_request: String,
     }
 
@@ -126,7 +126,7 @@ mod opaque_ffi {
         server_setup: String,
         password_file: Vec<String>,
         credential_request: String,
-        credential_identifier: String,
+        user_identifier: String,
         client_identifier: Vec<String>,
         server_identifier: Vec<String>,
     }
@@ -196,7 +196,7 @@ fn opaque_server_registration_start(
         &server_setup,
         RegistrationRequest::deserialize(&registration_request_bytes)
             .map_err(from_protocol_error("deserialize registrationRequest"))?,
-        params.credential_identifier.as_bytes(),
+        params.user_identifier.as_bytes(),
     )
     .map_err(from_protocol_error("start serverRegistration"))?;
     let registration_response_bytes = server_registration_start_result.message.serialize();
@@ -250,7 +250,7 @@ fn opaque_server_login_start(
         password_file,
         CredentialRequest::deserialize(&credential_request_bytes)
             .map_err(from_protocol_error("deserialize credentialRequest"))?,
-        params.credential_identifier.as_bytes(),
+        params.user_identifier.as_bytes(),
         start_params,
     )
     .map_err(from_protocol_error("start serverLogin"))?;

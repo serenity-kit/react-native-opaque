@@ -169,7 +169,7 @@ namespace NativeOpaque
 		auto obj = input.asObject(rt);
 		struct OpaqueServerRegistrationStartParams params = {
 			.server_setup = getProp(rt, obj, "serverSetup").utf8(rt),
-			.credential_identifier = getProp(rt, obj, "credentialIdentifier").utf8(rt),
+			.user_identifier = getProp(rt, obj, "userIdentifier").utf8(rt),
 			.registration_request = getProp(rt, obj, "registrationRequest").utf8(rt),
 		};
 		auto result = opaque_server_registration_start(params);
@@ -190,7 +190,7 @@ namespace NativeOpaque
 			.server_setup = getProp(rt, obj, "serverSetup").utf8(rt),
 			.password_file = getOptional(rt, obj, "passwordFile"),
 			.credential_request = getProp(rt, obj, "credentialRequest").utf8(rt),
-			.credential_identifier = getProp(rt, obj, "credentialIdentifier").utf8(rt),
+			.user_identifier = getProp(rt, obj, "userIdentifier").utf8(rt),
 			.client_identifier = getIdentifier(rt, obj, "client"),
 			.server_identifier = getIdentifier(rt, obj, "server"),
 		};

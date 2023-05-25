@@ -83,7 +83,7 @@ export const createServerSetup = opaque_createServerSetup;
 
 type ServerRegistrationStartParams = {
   serverSetup: string;
-  credentialIdentifier: string;
+  userIdentifier: string;
   registrationRequest: string;
 };
 
@@ -101,7 +101,7 @@ type ServerLoginStartParams = {
   serverSetup: string;
   passwordFile: string | undefined;
   credentialRequest: string;
-  credentialIdentifier: string;
+  userIdentifier: string;
   identifiers?: CustomIdentifiers;
 };
 

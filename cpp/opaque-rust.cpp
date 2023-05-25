@@ -861,7 +861,7 @@ struct OpaqueClientLoginFinishResult final {
 #define CXXBRIDGE1_STRUCT_OpaqueServerRegistrationStartParams
 struct OpaqueServerRegistrationStartParams final {
   ::rust::String server_setup;
-  ::rust::String credential_identifier;
+  ::rust::String user_identifier;
   ::rust::String registration_request;
 
   using IsRelocatable = ::std::true_type;
@@ -874,7 +874,7 @@ struct OpaqueServerLoginStartParams final {
   ::rust::String server_setup;
   ::rust::Vec<::rust::String> password_file;
   ::rust::String credential_request;
-  ::rust::String credential_identifier;
+  ::rust::String user_identifier;
   ::rust::Vec<::rust::String> client_identifier;
   ::rust::Vec<::rust::String> server_identifier;
 
