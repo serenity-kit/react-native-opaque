@@ -160,7 +160,7 @@ function App() {
         <Button
           title="Run Demo"
           onPress={() => {
-            const serverSetup = opaque.serverSetup();
+            const serverSetup = opaque.createServerSetup();
             runFullServerClientFlow(serverSetup, 'user123', 'hunter2');
           }}
         />

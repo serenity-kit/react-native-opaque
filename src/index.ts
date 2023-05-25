@@ -77,9 +77,9 @@ declare function opaque_clientLoginFinish(
 
 export const clientLoginFinish = opaque_clientLoginFinish;
 
-declare function opaque_serverSetup(): string;
+declare function opaque_createServerSetup(): string;
 
-export const serverSetup = opaque_serverSetup;
+export const createServerSetup = opaque_createServerSetup;
 
 type ServerRegistrationStartParams = {
   serverSetup: string;

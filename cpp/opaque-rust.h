@@ -842,7 +842,7 @@ struct OpaqueServerLoginFinishParams final {
 
 ::std::unique_ptr<::OpaqueClientLoginFinishResult> opaque_client_login_finish(::OpaqueClientLoginFinishParams params);
 
-::rust::String opaque_server_setup() noexcept;
+::rust::String opaque_create_server_setup() noexcept;
 
 ::rust::String opaque_server_registration_start(::OpaqueServerRegistrationStartParams params);
 

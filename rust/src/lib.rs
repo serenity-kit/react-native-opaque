@@ -156,7 +156,7 @@ mod opaque_ffi {
             params: OpaqueClientLoginFinishParams,
         ) -> Result<UniquePtr<OpaqueClientLoginFinishResult>>;
 
-        fn opaque_server_setup() -> String;
+        fn opaque_create_server_setup() -> String;
 
         fn opaque_server_registration_start(
             params: OpaqueServerRegistrationStartParams,
@@ -180,7 +180,7 @@ use opaque_ffi::{
     OpaqueServerRegistrationStartParams,
 };
 
-fn opaque_server_setup() -> String {
+fn opaque_create_server_setup() -> String {
     let mut rng: OsRng = OsRng;
     let setup = ServerSetup::<DefaultCipherSuite>::new(&mut rng);
     return BASE64.encode(setup.serialize());

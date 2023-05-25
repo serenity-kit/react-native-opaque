@@ -158,9 +158,9 @@ namespace NativeOpaque
 		return ret;
 	}
 
-	jsi::Value serverSetup(jsi::Runtime &rt, const jsi::Value *args)
+	jsi::Value createServerSetup(jsi::Runtime &rt, const jsi::Value *args)
 	{
-		auto setup = opaque_server_setup();
+		auto setup = opaque_create_server_setup();
 		return jsi::String::createFromUtf8(rt, std::string(setup));
 	}
 
@@ -255,7 +255,7 @@ namespace NativeOpaque
 		installFunc1(rt, "opaque_clientLoginStart", clientLoginStart);
 		installFunc1(rt, "opaque_clientLoginFinish", clientLoginFinish);
 
-		installFunc(rt, "opaque_serverSetup", 0, serverSetup);
+		installFunc(rt, "opaque_createServerSetup", 0, createServerSetup);
 		installFunc1(rt, "opaque_serverRegistrationStart", serverRegistrationStart);
 		installFunc1(rt, "opaque_serverRegistrationFinish", serverRegistrationFinish);
 		installFunc1(rt, "opaque_serverLoginStart", serverLoginStart);
