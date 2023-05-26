@@ -4,15 +4,11 @@ package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 folly_compiler_flags = '-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -Wno-comma -Wno-shorten-64-to-32'
 
 rustlib_xcconfig = {
-  # add rust lib debug targets
-  'LIBRARY_SEARCH_PATHS[sdk=iphoneos*][arch=arm64][config=Debug]' => '${PODS_TARGET_SRCROOT}/rust/target/aarch64-apple-ios/debug',
-  'LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*][arch=x86_64][config=Debug]' => '${PODS_TARGET_SRCROOT}/rust/target/x86_64-apple-ios/debug',
-  'LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*][arch=arm64][config=Debug]' => '${PODS_TARGET_SRCROOT}/rust/target/aarch64-apple-ios-sim/debug',
 
   # add rust lib release targets
-  'LIBRARY_SEARCH_PATHS[sdk=iphoneos*][arch=arm64][config=Release]' => '${PODS_TARGET_SRCROOT}/rust/target/aarch64-apple-ios/release',
-  'LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*][arch=x86_64][config=Release]' => '${PODS_TARGET_SRCROOT}/rust/target/x86_64-apple-ios/release',
-  'LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*][arch=arm64][config=Release]' => '${PODS_TARGET_SRCROOT}/rust/target/aarch64-apple-ios-sim/release',
+  'LIBRARY_SEARCH_PATHS[sdk=iphoneos*][arch=arm64]' => '${PODS_TARGET_SRCROOT}/rust/target/aarch64-apple-ios/release',
+  'LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*][arch=x86_64]' => '${PODS_TARGET_SRCROOT}/rust/target/x86_64-apple-ios/release',
+  'LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*][arch=arm64]' => '${PODS_TARGET_SRCROOT}/rust/target/aarch64-apple-ios-sim/release',
 
   # link rust lib
   'OTHER_LIBTOOLFLAGS' => '-lopaque_rust',

@@ -39,6 +39,5 @@ endif()
 
 # link the rust lib with our "opaque" library target defined earlier
 target_link_libraries(opaque
-  debug ${RUST_TARGET_DIR}/debug/libopaque_rust.a
-  optimized ${RUST_TARGET_DIR}/release/libopaque_rust.a
+  ${RUST_TARGET_DIR}/release/libopaque_rust.a
 )
