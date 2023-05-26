@@ -77,4 +77,5 @@ jobs:
           # Noticed this workaround in: https://github.com/stripe/stripe-react-native/blob/master/.github/workflows/e2e-tests.yml#L71
           script: |
             yarn android-release
+            yarn e2e-debug
             yarn android-e2e-tests
