@@ -29,4 +29,4 @@ AR=$TOOLS/bin/llvm-ar \
 CXX=$TOOLS/bin/${NDK_TARGET}${API_VERSION}-clang++ \
 RANLIB=$TOOLS/bin/llvm-ranlib \
 CXXFLAGS="--target=$NDK_TARGET" \
-cargo build --target $TARGET $EXTRA_ARGS
+cargo build --target $TARGET --release $EXTRA_ARGS
