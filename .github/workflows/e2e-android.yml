@@ -51,7 +51,9 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}-${{ hashFiles('**/buildSrc/**/*.kt') }}
-      - name: Install node_modules
+      - name: Install node_modules in root
+        run: yarn install --frozen-lockfile
+      - name: Install node_modules in example
         working-directory: example
         run: yarn install --frozen-lockfile
       # Install Maestro
