@@ -74,4 +74,4 @@ jobs:
           working-directory: example
           script: |
             yarn android-release
-            maestro test ../e2e-tests/maestro-flow-android.yml
+            yarn android-e2e-tests
