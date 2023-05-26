@@ -183,7 +183,7 @@ use opaque_ffi::{
 fn opaque_server_setup() -> String {
     let mut rng: OsRng = OsRng;
     let setup = ServerSetup::<DefaultCipherSuite>::new(&mut rng);
-    return BASE64.encode(setup.serialize());
+    BASE64.encode(setup.serialize())
 }
 
 fn opaque_server_registration_start(
@@ -200,7 +200,7 @@ fn opaque_server_registration_start(
     )
     .map_err(from_protocol_error("start serverRegistration"))?;
     let registration_response_bytes = server_registration_start_result.message.serialize();
-    return Ok(BASE64.encode(registration_response_bytes));
+    Ok(BASE64.encode(registration_response_bytes))
 }
 
 fn opaque_server_registration_finish(message: String) -> Result<String, Error> {
@@ -218,7 +218,7 @@ fn opaque_server_login_start(
     let server_setup = decode_server_setup(params.server_setup)?;
     let password_file_param = get_optional_string(params.password_file)?;
     let password_file_bytes = match password_file_param {
-        Some(pw) => base64_decode("passwordFile", pw).map(|val| Some(val)),
+        Some(pw) => base64_decode("passwordFile", pw).map(Some),
         None => Ok(None),
     }?;
     let credential_request_bytes = base64_decode("credentialRequest", params.credential_request)?;
@@ -262,7 +262,7 @@ fn opaque_server_login_start(
         server_login,
         credential_response,
     };
-    return Ok(result);
+    Ok(result)
 }
 
 fn opaque_server_login_finish(params: OpaqueServerLoginFinishParams) -> Result<String, Error> {
@@ -277,14 +277,14 @@ fn opaque_server_login_finish(params: OpaqueServerLoginFinishParams) -> Result<S
                 .map_err(from_protocol_error("deserialize credentialFinalization"))?,
         )
         .map_err(from_protocol_error("finish serverLogin"))?;
-    return Ok(BASE64.encode(server_login_finish_result.session_key));
+    Ok(BASE64.encode(server_login_finish_result.session_key))
 }
 
 fn decode_server_setup(data: String) -> Result<ServerSetup<DefaultCipherSuite>, Error> {
-    return base64_decode("serverSetup", data).and_then(|bytes| {
+    base64_decode("serverSetup", data).and_then(|bytes| {
         ServerSetup::<DefaultCipherSuite>::deserialize(&bytes)
             .map_err(from_protocol_error("deserialize serverSetup"))
-    });
+    })
 }
 
 fn opaque_client_registration_start(
@@ -301,11 +301,10 @@ fn opaque_client_registration_start(
         registration_request: BASE64.encode(
             client_registration_start_result
                 .message
-                .serialize()
-                .to_vec(),
+                .serialize(),
         ),
     };
-    return Ok(result);
+    Ok(result)
 }
 
 fn get_optional_string(ident: Vec<String>) -> Result<Option<String>, Error> {
@@ -361,12 +360,12 @@ fn opaque_client_registration_finish(
 
     let message_bytes = client_finish_registration_result.message.serialize();
     let result = OpaqueClientRegistrationFinishResult {
-        registration_upload: BASE64.encode(message_bytes.to_vec()),
+        registration_upload: BASE64.encode(message_bytes),
         export_key: BASE64.encode(client_finish_registration_result.export_key),
         server_static_public_key: BASE64
             .encode(client_finish_registration_result.server_s_pk.serialize()),
     };
-    return Ok(result);
+    Ok(result)
 }
 
 fn opaque_client_login_start(password: String) -> Result<OpaqueClientLoginStartResult, Error> {
@@ -377,9 +376,9 @@ fn opaque_client_login_start(password: String) -> Result<OpaqueClientLoginStartR
 
     let result = OpaqueClientLoginStartResult {
         client_login: BASE64.encode(client_login_start_result.state.serialize()),
-        credential_request: BASE64.encode(client_login_start_result.message.serialize().to_vec()),
+        credential_request: BASE64.encode(client_login_start_result.message.serialize()),
     };
-    return Ok(result);
+    Ok(result)
 }
 
 fn opaque_client_login_finish(
@@ -423,5 +422,5 @@ fn opaque_client_login_finish(
         server_static_public_key: BASE64.encode(client_login_finish_result.server_s_pk.serialize()),
     };
 
-    return Ok(cxx::UniquePtr::new(result));
+    Ok(cxx::UniquePtr::new(result))
 }
