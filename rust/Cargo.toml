@@ -6,6 +6,9 @@ edition = "2021"
 [lib]
 crate-type = ["staticlib"]
 
+[profile.release]
+lto = true
+
 [features]
 default = []
 p256 = ["dep:p256"]
