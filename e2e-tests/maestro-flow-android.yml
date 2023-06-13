@@ -2,5 +2,5 @@ appId: com.opaqueexample
 ---
 - launchApp
 - assertVisible:
-    text: 'Run full flow'
+    text: 'Tests passed'
     enabled: true
