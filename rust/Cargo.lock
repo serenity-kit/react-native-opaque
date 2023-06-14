@@ -100,9 +100,9 @@ dependencies = [
 
 [[package]]
 name = "curve25519-dalek"
-version = "4.0.0-rc.1"
+version = "4.0.0-rc.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d4ba9852b42210c7538b75484f9daa0655e9a3ac04f693747bb0f02cf3cfe16"
+checksum = "03d928d978dbec61a1167414f5ec534f24bea0d7a0d24dd9b6233d3d8223e585"
 dependencies = [
  "cfg-if",
  "fiat-crypto",
@@ -294,9 +294,9 @@ dependencies = [
 
 [[package]]
 name = "opaque-ke"
-version = "3.0.0-pre.2"
+version = "3.0.0-pre.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d02d136ab27335e68e977a3d8188254bac65e85ed948bd92fb582bcf6a72116b"
+checksum = "f4ab66d2debe1701311047103e5cc19102fa0014c37b4ce59f5dc12ab0e980a9"
 dependencies = [
  "argon2",
  "curve25519-dalek",
@@ -509,9 +509,9 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 
 [[package]]
 name = "voprf"
-version = "0.5.0-pre.3"
+version = "0.5.0-pre.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2db1885ef406242615531f63422643c6cb2d983c1a2b4805d2f5a7e5298b993e"
+checksum = "536355986090b5ec32a4c7aa5d58ce999254da979f3f30edf8b1a6ab384958dc"
 dependencies = [
  "curve25519-dalek",
  "derive-where",
