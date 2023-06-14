@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "android": "react-native run-android",
+    "android-release": "react-native run-android --mode Release",
+    "android-e2e-tests": "maestro test ../e2e-tests/maestro-flow-android.yml",
+    "e2e-debug": "maestro hierarchy",
     "ios": "react-native run-ios",
     "start": "react-native start",
     "pods": "pod-install --quiet",

@@ -1,0 +1,6 @@
+appId: org.reactjs.native.example.OpaqueExample
+---
+- launchApp
+- assertVisible:
+    text: 'Tests passed'
+    enabled: true
