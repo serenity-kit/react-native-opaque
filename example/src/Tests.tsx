@@ -100,9 +100,9 @@ export const Tests: React.FC = () => {
   return (
     <View>
       <Text>{allTestsPassed ? 'Tests passed' : 'Tests failed'}</Text>
-      {tests.map((result) => {
+      {tests.map((result, index) => {
         return (
-          <View key={performance.now()}>
+          <View key={index}>
             <Text>
               {result.description}: {result.failed ? '❌' : '✅'}
             </Text>

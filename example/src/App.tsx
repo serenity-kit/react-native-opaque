@@ -1,6 +1,14 @@
 import * as React from 'react';
 
-import { Alert, Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Alert,
+  Button,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import * as opaque from 'react-native-opaque';
 import { Tests } from './Tests';
 
@@ -75,6 +83,18 @@ async function login(host: string, userIdentifier: string, password: string) {
   return res.ok ? sessionKey : null;
 }
 
+function showAlertMsg(msg: string) {
+  if (Platform.OS === 'web') {
+    if ('alert' in global && typeof global.alert === 'function') {
+      global.alert(msg);
+    } else {
+      console.error('no alert on global');
+    }
+  } else {
+    Alert.alert(msg);
+  }
+}
+
 function App() {
   const [host, setHost] = React.useState('http://10.0.2.2:8089');
   const [username, setUsername] = React.useState('');
@@ -91,6 +111,7 @@ function App() {
           gap: 8,
         }}
       >
+        <Text>{Platform.OS}</Text>
         <TextInput
           style={styles.input}
           placeholder="Host"
@@ -116,12 +137,12 @@ function App() {
               try {
                 const ok = await register(host, username, password);
                 if (ok) {
-                  Alert.alert('Successfully registered!');
+                  showAlertMsg(`User "${username}" registered successfully`);
                 } else {
-                  Alert.alert('An unknown error occurred.');
+                  showAlertMsg('An unknown error occurred.');
                 }
               } catch (err) {
-                Alert.alert('Something went wrong', '' + err);
+                showAlertMsg('Something went wrong' + `\n` + err);
               }
             }}
           />
@@ -131,12 +152,14 @@ function App() {
               try {
                 const res = await login(host, username, password);
                 if (res) {
-                  Alert.alert('Login success, session key: ' + res);
+                  showAlertMsg(
+                    `User "${username}" logged in successfully\nSession key: ${res}`
+                  );
                 } else {
-                  Alert.alert('Login failed');
+                  showAlertMsg('Login failed');
                 }
               } catch (err) {
-                Alert.alert('Something went wrong', '' + err);
+                showAlertMsg('Something went wrong' + `\n` + err);
               }
             }}
           />
