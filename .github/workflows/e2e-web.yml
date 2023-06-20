@@ -1,4 +1,4 @@
-name: Web e2e tests
+name: e2e tests Web
 
 on: [push]
 
@@ -8,8 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Run yarn
-        run: yarn --frozen-lockfile
+      - name: Install node_modules
+        run: yarn install --frozen-lockfile
+      - name: Install node_modules for example/
+        run: yarn install --frozen-lockfile --cwd example
       - name: Install Playwright
         run: npx playwright install --with-deps
       - name: Run e2e tests
