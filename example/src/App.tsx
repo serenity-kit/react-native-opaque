@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import * as opaque from 'react-native-opaque';
-import { Tests } from './Tests';
+import { Tests } from './TestResults';
 
 async function request(method: string, url: string, body: any = undefined) {
   console.log(`${method} ${url}`, body);
