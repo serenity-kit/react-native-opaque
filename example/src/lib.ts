@@ -42,16 +42,44 @@ export function test(description: string, callback: TestCallback) {
 }
 
 class Expect {
-  constructor(readonly actual: unknown) {}
+  constructor(readonly actual: unknown, private inverse: boolean = false) {}
+  get not() {
+    this.inverse = !this.inverse;
+    return this;
+  }
+  private check(f: () => boolean) {
+    const result = f();
+    return (result && !this.inverse) || (!result && this.inverse);
+  }
+  private fail(regular: string, inverse: string) {
+    if (this.inverse) {
+      throw new TestFailure(inverse);
+    } else {
+      throw new TestFailure(regular);
+    }
+  }
   toBe(expected: unknown) {
-    if (this.actual !== expected) {
-      const msg = `actual "${this.actual}" is not strictly equal to expected "${expected}"`;
-      throw new TestFailure(msg);
+    if (this.check(() => this.actual !== expected)) {
+      this.fail(
+        `actual "${this.actual}" is not strictly equal to expected "${expected}"`,
+        `actual "${this.actual}" is strictly equal to expected "${expected}"`
+      );
+    }
+  }
+  toEqual(expected: unknown) {
+    if (this.check(() => this.actual !== expected)) {
+      this.fail(
+        `actual "${this.actual}" is not strictly equal to expected "${expected}"`,
+        `actual "${this.actual}" is strictly equal to expected "${expected}"`
+      );
     }
   }
   toBeUndefined() {
-    if (this.actual !== undefined) {
-      throw new TestFailure(`expected undefined but got "${this.actual}"`);
+    if (this.check(() => this.actual !== undefined)) {
+      this.fail(
+        `expected undefined but got "${this.actual}"`,
+        'expected a value but got undefined'
+      );
     }
   }
 }
