@@ -15,15 +15,18 @@ type ExpectResult =
     };
 
 type TestEntry = {
+  id: string;
   description: string;
   failed: boolean;
   expectResults: ExpectResult[];
 };
 
 let tests: TestEntry[] = [];
-
+let nextTestId = 1;
 async function test(description: string, callback: () => void) {
+  const id = nextTestId++;
   const testEntry: TestEntry = {
+    id: '_' + id,
     description,
     failed: true,
     expectResults: [],
@@ -100,9 +103,9 @@ export const Tests: React.FC = () => {
   return (
     <View>
       <Text>{allTestsPassed ? 'Tests passed' : 'Tests failed'}</Text>
-      {tests.map((result, index) => {
+      {tests.map((result) => {
         return (
-          <View key={index}>
+          <View key={result.id}>
             <Text>
               {result.description}: {result.failed ? '❌' : '✅'}
             </Text>
