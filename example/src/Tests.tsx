@@ -1,6 +1,6 @@
-import * as opaque from 'react-native-opaque';
 import React, { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
+import * as opaque from 'react-native-opaque';
 import { TestResult, expect, runTests, test } from './lib';
 
 // test('1 === 1', async () => {
@@ -203,23 +203,35 @@ export const Tests: React.FC = () => {
   }, []);
 
   return (
-    <View>
+    <View style={{ flexDirection: 'column', gap: 8, padding: 16 }}>
       {allTestsPassed != null && (
-        <Text>{allTestsPassed ? 'Tests passed' : 'Tests failed'}</Text>
+        <Text style={{ fontSize: 20 }}>
+          {allTestsPassed ? 'Tests passed' : 'Tests failed'}
+        </Text>
       )}
       {testResults &&
         testResults.map((result) => {
           return (
-            <View key={result.test.id}>
-              <Text>
-                {!result.success ? '❌' : '✅'}
-                {result.test.description}
-              </Text>
-              {!result.success && <Text>{'' + result.error}</Text>}
+            <View key={result.test.id} style={{ gap: 8 }}>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <Text>{!result.success ? '❌' : '✅'}</Text>
+                <Text style={{ fontSize: 16 }}>{result.test.description}</Text>
+              </View>
+              {!result.success && (
+                <Text style={{ fontSize: 16, color: 'red' }}>
+                  {'' + result.error}
+                </Text>
+              )}
               {!result.success &&
                 typeof result.error === 'object' &&
                 result.error &&
-                'stack' in result.error && <Text>{result.error.stack}</Text>}
+                'stack' in result.error && (
+                  <View style={{ backgroundColor: '#ddd', padding: 16 }}>
+                    <Text style={{ fontFamily: 'monospace' }}>
+                      {result.error.stack}
+                    </Text>
+                  </View>
+                )}
             </View>
           );
         })}

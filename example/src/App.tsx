@@ -4,6 +4,7 @@ import {
   Alert,
   Button,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -101,17 +102,8 @@ function App() {
   const [password, setPassword] = React.useState('');
 
   return (
-    <View style={styles.container}>
-      <View
-        style={{
-          flex: 1,
-          alignItems: 'center',
-          justifyContent: 'flex-end',
-          width: '100%',
-          gap: 8,
-        }}
-      >
-        <Text>{Platform.OS}</Text>
+    <ScrollView>
+      <View style={styles.container}>
         <TextInput
           style={styles.input}
           placeholder="Host"
@@ -186,7 +178,7 @@ function App() {
         />
       </View>
       <Tests />
-    </View>
+    </ScrollView>
   );
 }
 

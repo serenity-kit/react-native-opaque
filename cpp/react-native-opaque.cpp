@@ -89,6 +89,10 @@ namespace NativeOpaque
 		if (!obj.hasProperty(rt, "identifiers"))
 			return result;
 		auto identsProp = obj.getProperty(rt, "identifiers");
+		if (identsProp.isUndefined() || identsProp.isNull())
+		{
+			return result;
+		}
 		if (!identsProp.isObject())
 		{
 			throw jsi::JSError(rt, "\"identifiers\" must be an object");
@@ -148,7 +152,7 @@ namespace NativeOpaque
 		auto result = opaque_client_login_finish(params);
 		if (result == nullptr)
 		{
-			return jsi::Value::null();
+			return jsi::Value::undefined();
 		}
 		auto ret = jsi::Object(rt);
 		ret.setProperty(rt, "credentialFinalization", std::string(result->credential_finalization));
