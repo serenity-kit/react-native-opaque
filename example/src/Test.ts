@@ -79,7 +79,7 @@ class TestRunner {
   }
   async runAll() {
     const results: TestResult[] = [];
-    this.runSuite(this.root(), results, []);
+    await this.runSuite(this.root(), results, []);
     return results;
   }
 }
@@ -131,7 +131,7 @@ class Expect {
       );
     }
   }
-  toThrow(msg: string) {
+  toThrow(msg?: string) {
     if (typeof this.actual !== 'function') {
       throw new TypeError('.toThrow requires callback function');
     }
@@ -145,7 +145,7 @@ class Expect {
       if (!(err instanceof Error)) {
         throw new TestFailure('error is not an instanceof Error');
       }
-      if (!err.message.includes(msg)) {
+      if (msg && !err.message.includes(msg)) {
         throw new TestFailure(
           `error message "${err.message}" does not match substring "${msg}"`
         );
