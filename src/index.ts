@@ -11,121 +11,132 @@ if (Opaque && typeof Opaque.install === 'function') {
   console.warn('Opaque.install not a function');
 }
 
-type CustomIdentifiers = {
+export type CustomIdentifiers = {
   client?: string;
   server?: string;
 };
 
-type ClientRegistrationStartResult = {
-  clientRegistration: string;
-  registrationRequest: string;
-};
+declare function opaque_startClientRegistration(
+  params: client.StartRegistrationParams
+): client.StartRegistrationResult;
 
-declare function opaque_clientRegistrationStart(
-  password: string
-): ClientRegistrationStartResult;
+declare function opaque_finishClientRegistration(
+  finishParams: client.FinishRegistrationParams
+): client.FinishRegistrationResult;
 
-export const clientRegistrationStart = opaque_clientRegistrationStart;
+declare function opaque_startClientLogin(
+  params: client.StartLoginParams
+): client.StartLoginResult;
 
-type ClientRegistrationFinishParams = {
-  password: string;
-  registrationResponse: string;
-  clientRegistration: string;
-  identifiers?: CustomIdentifiers;
-};
+declare function opaque_finishClientLogin(
+  params: client.FinishLoginParams
+): client.FinishLoginResult | null;
 
-type ClientRegistrationFinishResult = {
-  registrationUpload: string;
-  exportKey: string;
-  serverStaticPublicKey: string;
-};
+export namespace client {
+  export type StartRegistrationParams = {
+    password: string;
+  };
 
-declare function opaque_clientRegistrationFinish(
-  finishParams: ClientRegistrationFinishParams
-): ClientRegistrationFinishResult;
+  export type StartRegistrationResult = {
+    clientRegistrationState: string;
+    registrationRequest: string;
+  };
 
-export const clientRegistrationFinish = opaque_clientRegistrationFinish;
+  export type FinishRegistrationParams = {
+    password: string;
+    registrationResponse: string;
+    clientRegistrationState: string;
+    identifiers?: CustomIdentifiers;
+  };
 
-type ClientLoginStartResult = {
-  clientLogin: string;
-  credentialRequest: string;
-};
+  export type FinishRegistrationResult = {
+    registrationRecord: string;
+    exportKey: string;
+    serverStaticPublicKey: string;
+  };
 
-declare function opaque_clientLoginStart(
-  password: string
-): ClientLoginStartResult;
+  export type StartLoginParams = {
+    password: string;
+  };
 
-export const clientLoginStart = opaque_clientLoginStart;
+  export type StartLoginResult = {
+    clientLoginState: string;
+    startLoginRequest: string;
+  };
 
-type ClientLoginFinishParams = {
-  clientLogin: string;
-  credentialResponse: string;
-  password: string;
-  identifiers?: CustomIdentifiers;
-};
+  export type FinishLoginParams = {
+    clientLoginState: string;
+    loginResponse: string;
+    password: string;
+    identifiers?: CustomIdentifiers;
+  };
 
-type ClientLoginFinishResult = {
-  credentialFinalization: string;
-  sessionKey: string;
-  exportKey: string;
-  serverStaticPublicKey: string;
-};
+  export type FinishLoginResult = {
+    finishLoginRequest: string;
+    sessionKey: string;
+    exportKey: string;
+    serverStaticPublicKey: string;
+  };
 
-declare function opaque_clientLoginFinish(
-  params: ClientLoginFinishParams
-): ClientLoginFinishResult | null;
-
-export const clientLoginFinish = opaque_clientLoginFinish;
+  export const startRegistration = opaque_startClientRegistration;
+  export const finishRegistration = opaque_finishClientRegistration;
+  export const startLogin = opaque_startClientLogin;
+  export const finishLogin = opaque_finishClientLogin;
+}
 
 declare function opaque_createServerSetup(): string;
 
-export const createServerSetup = opaque_createServerSetup;
+declare function opaque_createServerRegistrationResponse(
+  params: server.CreateRegistrationResponseParams
+): server.CreateRegistrationResponseResult;
 
-type ServerRegistrationStartParams = {
-  serverSetup: string;
-  userIdentifier: string;
-  registrationRequest: string;
-};
+declare function opaque_startServerLogin(
+  params: server.StartLoginParams
+): server.StartLoginResult;
 
-declare function opaque_serverRegistrationStart(
-  params: ServerRegistrationStartParams
-): string;
+declare function opaque_finishServerLogin(
+  params: server.FinishLoginParams
+): server.FinishLoginResult;
 
-export const serverRegistrationStart = opaque_serverRegistrationStart;
+export namespace server {
+  export type CreateRegistrationResponseParams = {
+    serverSetup: string;
+    userIdentifier: string;
+    registrationRequest: string;
+  };
 
-declare function opaque_serverRegistrationFinish(message: string): string;
+  export type CreateRegistrationResponseResult = {
+    registrationResponse: string;
+  };
 
-export const serverRegistrationFinish = opaque_serverRegistrationFinish;
+  export type StartLoginParams = {
+    serverSetup: string;
+    registrationRecord: string | null | undefined;
+    startLoginRequest: string;
+    userIdentifier: string;
+    identifiers?: CustomIdentifiers;
+  };
 
-type ServerLoginStartParams = {
-  serverSetup: string;
-  passwordFile: string | null | undefined;
-  credentialRequest: string;
-  userIdentifier: string;
-  identifiers?: CustomIdentifiers;
-};
+  export type StartLoginResult = {
+    serverLoginState: string;
+    loginResponse: string;
+  };
 
-type ServerLoginStartResult = {
-  serverLogin: string;
-  credentialResponse: string;
-};
+  export type FinishLoginParams = {
+    serverLoginState: string;
+    finishLoginRequest: string;
+  };
 
-declare function opaque_serverLoginStart(
-  params: ServerLoginStartParams
-): ServerLoginStartResult;
+  export type FinishLoginResult = {
+    sessionKey: string;
+  };
 
-export const serverLoginStart = opaque_serverLoginStart;
-
-type ServerLoginFinishParams = {
-  serverLogin: string;
-  credentialFinalization: string;
-};
-
-declare function opaque_serverLoginFinish(
-  params: ServerLoginFinishParams
-): string;
-
-export const serverLoginFinish = opaque_serverLoginFinish;
+  export const createSetup = opaque_createServerSetup;
+  export const createRegistrationResponse =
+    opaque_createServerRegistrationResponse;
+  export const startLogin = opaque_startServerLogin;
+  export const finishLogin = opaque_finishServerLogin;
+}
 
 // needed for web version to indicate when the module has been loaded since WASM is async
 export const ready = Promise.resolve();
