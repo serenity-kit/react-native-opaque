@@ -73,12 +73,15 @@ namespace NativeOpaque
 		return prop.getString(rt);
 	}
 
-	jsi::Value clientRegistrationStart(jsi::Runtime &rt, jsi::Value &input)
+	jsi::Value startClientRegistration(jsi::Runtime &rt, jsi::Value &input)
 	{
-		auto password = input.asString(rt);
-		auto clientStartResult = opaque_client_registration_start(password.utf8(rt));
+		auto obj = input.asObject(rt);
+		struct OpaqueStartClientRegistrationParams params = {
+			.password = getProp(rt, obj, "password").utf8(rt),
+		};
+		auto clientStartResult = opaque_start_client_registration(params);
 		auto result = jsi::Object(rt);
-		result.setProperty(rt, "clientRegistration", std::string(clientStartResult.client_registration));
+		result.setProperty(rt, "clientRegistrationState", std::string(clientStartResult.client_registration_state));
 		result.setProperty(rt, "registrationRequest", std::string(clientStartResult.registration_request));
 		return result;
 	}
@@ -110,52 +113,56 @@ namespace NativeOpaque
 		return result;
 	}
 
-	jsi::Value clientRegistrationFinish(jsi::Runtime &rt, jsi::Value &input)
+	jsi::Value finishClientRegistration(jsi::Runtime &rt, jsi::Value &input)
 	{
 		auto obj = input.asObject(rt);
 
-		struct OpaqueClientRegistrationFinishParams params = {
+		struct OpaqueFinishClientRegistrationParams params = {
 			.password = getProp(rt, obj, "password").utf8(rt),
 			.registration_response = getProp(rt, obj, "registrationResponse").utf8(rt),
-			.client_registration = getProp(rt, obj, "clientRegistration").utf8(rt),
+			.client_registration_state = getProp(rt, obj, "clientRegistrationState").utf8(rt),
 			.client_identifier = getIdentifier(rt, obj, "client"),
 			.server_identifier = getIdentifier(rt, obj, "server"),
 		};
 
-		auto finish = opaque_client_registration_finish(params);
+		auto finish = opaque_finish_client_registration(params);
 		auto result = jsi::Object(rt);
 		result.setProperty(rt, "exportKey", std::string(finish.export_key));
-		result.setProperty(rt, "registrationUpload", std::string(finish.registration_upload));
+		result.setProperty(rt, "registrationRecord", std::string(finish.registration_record));
 		result.setProperty(rt, "serverStaticPublicKey", std::string(finish.server_static_public_key));
 		return result;
 	}
 
-	jsi::Value clientLoginStart(jsi::Runtime &rt, jsi::Value &input)
+	jsi::Value startClientLogin(jsi::Runtime &rt, jsi::Value &input)
 	{
-		auto result = opaque_client_login_start(std::string(input.asString(rt).utf8(rt)));
-		auto obj = jsi::Object(rt);
-		obj.setProperty(rt, "clientLogin", std::string(result.client_login));
-		obj.setProperty(rt, "credentialRequest", std::string(result.credential_request));
-		return obj;
+		auto jsParams = input.asObject(rt);
+		struct OpaqueStartClientLoginParams params = {
+			.password = getProp(rt, jsParams, "password").utf8(rt),
+		};
+		auto result = opaque_start_client_login(params);
+		auto jsResult = jsi::Object(rt);
+		jsResult.setProperty(rt, "clientLoginState", std::string(result.client_login_state));
+		jsResult.setProperty(rt, "startLoginRequest", std::string(result.start_login_request));
+		return jsResult;
 	}
 
-	jsi::Value clientLoginFinish(jsi::Runtime &rt, jsi::Value &input)
+	jsi::Value finishClientLogin(jsi::Runtime &rt, jsi::Value &input)
 	{
 		auto obj = input.asObject(rt);
-		struct OpaqueClientLoginFinishParams params = {
-			.client_login = getProp(rt, obj, "clientLogin").utf8(rt),
-			.credential_response = getProp(rt, obj, "credentialResponse").utf8(rt),
+		struct OpaqueFinishClientLoginParams params = {
+			.client_login_state = getProp(rt, obj, "clientLoginState").utf8(rt),
+			.login_response = getProp(rt, obj, "loginResponse").utf8(rt),
 			.password = getProp(rt, obj, "password").utf8(rt),
 			.client_identifier = getIdentifier(rt, obj, "client"),
 			.server_identifier = getIdentifier(rt, obj, "server"),
 		};
-		auto result = opaque_client_login_finish(params);
+		auto result = opaque_finish_client_login(params);
 		if (result == nullptr)
 		{
 			return jsi::Value::undefined();
 		}
 		auto ret = jsi::Object(rt);
-		ret.setProperty(rt, "credentialFinalization", std::string(result->credential_finalization));
+		ret.setProperty(rt, "finishLoginRequest", std::string(result->finish_login_request));
 		ret.setProperty(rt, "sessionKey", std::string(result->session_key));
 		ret.setProperty(rt, "exportKey", std::string(result->export_key));
 		ret.setProperty(rt, "serverStaticPublicKey", std::string(result->server_static_public_key));
@@ -168,54 +175,52 @@ namespace NativeOpaque
 		return jsi::String::createFromUtf8(rt, std::string(setup));
 	}
 
-	jsi::Value serverRegistrationStart(jsi::Runtime &rt, jsi::Value &input)
+	jsi::Value createServerRegistrationResponse(jsi::Runtime &rt, jsi::Value &input)
 	{
 		auto obj = input.asObject(rt);
-		struct OpaqueServerRegistrationStartParams params = {
+		struct OpaqueCreateServerRegistrationResponseParams params = {
 			.server_setup = getProp(rt, obj, "serverSetup").utf8(rt),
 			.user_identifier = getProp(rt, obj, "userIdentifier").utf8(rt),
 			.registration_request = getProp(rt, obj, "registrationRequest").utf8(rt),
 		};
-		auto result = opaque_server_registration_start(params);
-		return jsi::String::createFromUtf8(rt, std::string(result));
+		auto result = opaque_create_server_registration_response(params);
+		auto ret = jsi::Object(rt);
+		ret.setProperty(rt, "registrationResponse", std::string(result.registration_response));
+		return ret;
 	}
 
-	jsi::Value serverRegistrationFinish(jsi::Runtime &rt, jsi::Value &input)
-	{
-		auto result = opaque_server_registration_finish(input.asString(rt).utf8(rt));
-		return jsi::String::createFromUtf8(rt, std::string(result));
-	}
-
-	jsi::Value serverLoginStart(jsi::Runtime &rt, jsi::Value &input)
+	jsi::Value startServerLogin(jsi::Runtime &rt, jsi::Value &input)
 	{
 		auto obj = input.asObject(rt);
-		struct OpaqueServerLoginStartParams params
+		struct OpaqueStartServerLoginParams params
 		{
 			.server_setup = getProp(rt, obj, "serverSetup").utf8(rt),
-			.password_file = getOptional(rt, obj, "passwordFile"),
-			.credential_request = getProp(rt, obj, "credentialRequest").utf8(rt),
+			.registration_record = getOptional(rt, obj, "registrationRecord"),
+			.start_login_request = getProp(rt, obj, "startLoginRequest").utf8(rt),
 			.user_identifier = getProp(rt, obj, "userIdentifier").utf8(rt),
 			.client_identifier = getIdentifier(rt, obj, "client"),
 			.server_identifier = getIdentifier(rt, obj, "server"),
 		};
 
-		auto result = opaque_server_login_start(params);
+		auto result = opaque_start_server_login(params);
 
 		auto ret = jsi::Object(rt);
-		ret.setProperty(rt, "serverLogin", std::string(result.server_login));
-		ret.setProperty(rt, "credentialResponse", std::string(result.credential_response));
+		ret.setProperty(rt, "serverLoginState", std::string(result.server_login_state));
+		ret.setProperty(rt, "loginResponse", std::string(result.login_response));
 		return ret;
 	}
 
-	jsi::Value serverLoginFinish(jsi::Runtime &rt, jsi::Value &input)
+	jsi::Value finishServerLogin(jsi::Runtime &rt, jsi::Value &input)
 	{
 		auto obj = input.asObject(rt);
-		struct OpaqueServerLoginFinishParams params = {
-			.server_login = getProp(rt, obj, "serverLogin").utf8(rt),
-			.credential_finalization = getProp(rt, obj, "credentialFinalization").utf8(rt),
+		struct OpaqueFinishServerLoginParams params = {
+			.server_login_state = getProp(rt, obj, "serverLoginState").utf8(rt),
+			.finish_login_request = getProp(rt, obj, "finishLoginRequest").utf8(rt),
 		};
-		auto result = opaque_server_login_finish(params);
-		return jsi::String::createFromUtf8(rt, std::string(result));
+		auto result = opaque_finish_server_login(params);
+		auto ret = jsi::Object(rt);
+		ret.setProperty(rt, "sessionKey", std::string(result.session_key));
+		return ret;
 	}
 
 	using OpaqueFuncN = std::function<jsi::Value(jsi::Runtime &, const jsi::Value *args)>;
@@ -254,15 +259,14 @@ namespace NativeOpaque
 
 	void installOpaque(jsi::Runtime &rt)
 	{
-		installFunc1(rt, "opaque_clientRegistrationStart", clientRegistrationStart);
-		installFunc1(rt, "opaque_clientRegistrationFinish", clientRegistrationFinish);
-		installFunc1(rt, "opaque_clientLoginStart", clientLoginStart);
-		installFunc1(rt, "opaque_clientLoginFinish", clientLoginFinish);
+		installFunc1(rt, "opaque_startClientRegistration", startClientRegistration);
+		installFunc1(rt, "opaque_finishClientRegistration", finishClientRegistration);
+		installFunc1(rt, "opaque_startClientLogin", startClientLogin);
+		installFunc1(rt, "opaque_finishClientLogin", finishClientLogin);
 
 		installFunc(rt, "opaque_createServerSetup", 0, createServerSetup);
-		installFunc1(rt, "opaque_serverRegistrationStart", serverRegistrationStart);
-		installFunc1(rt, "opaque_serverRegistrationFinish", serverRegistrationFinish);
-		installFunc1(rt, "opaque_serverLoginStart", serverLoginStart);
-		installFunc1(rt, "opaque_serverLoginFinish", serverLoginFinish);
+		installFunc1(rt, "opaque_createServerRegistrationResponse", createServerRegistrationResponse);
+		installFunc1(rt, "opaque_startServerLogin", startServerLogin);
+		installFunc1(rt, "opaque_finishServerLogin", finishServerLogin);
 	}
 }

@@ -709,145 +709,183 @@ std::size_t align_of() {
 } // namespace cxxbridge1
 } // namespace rust
 
-struct OpaqueClientRegistrationStartResult;
-struct OpaqueClientRegistrationFinishParams;
-struct OpaqueClientRegistrationFinishResult;
-struct OpaqueClientLoginStartResult;
-struct OpaqueClientLoginFinishParams;
-struct OpaqueClientLoginFinishResult;
-struct OpaqueServerRegistrationStartParams;
-struct OpaqueServerLoginStartParams;
-struct OpaqueServerLoginStartResult;
-struct OpaqueServerLoginFinishParams;
+struct OpaqueStartClientRegistrationParams;
+struct OpaqueStartClientRegistrationResult;
+struct OpaqueFinishClientRegistrationParams;
+struct OpaqueFinishClientRegistrationResult;
+struct OpaqueStartClientLoginParams;
+struct OpaqueStartClientLoginResult;
+struct OpaqueFinishClientLoginParams;
+struct OpaqueFinishClientLoginResult;
+struct OpaqueCreateServerRegistrationResponseParams;
+struct OpaqueCreateServerRegistrationResponseResult;
+struct OpaqueStartServerLoginParams;
+struct OpaqueStartServerLoginResult;
+struct OpaqueFinishServerLoginParams;
+struct OpaqueFinishServerLoginResult;
 
-#ifndef CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
-#define CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
-struct OpaqueClientRegistrationStartResult final {
-  ::rust::String client_registration;
+#ifndef CXXBRIDGE1_STRUCT_OpaqueStartClientRegistrationParams
+#define CXXBRIDGE1_STRUCT_OpaqueStartClientRegistrationParams
+struct OpaqueStartClientRegistrationParams final {
+  ::rust::String password;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueStartClientRegistrationParams
+
+#ifndef CXXBRIDGE1_STRUCT_OpaqueStartClientRegistrationResult
+#define CXXBRIDGE1_STRUCT_OpaqueStartClientRegistrationResult
+struct OpaqueStartClientRegistrationResult final {
+  ::rust::String client_registration_state;
   ::rust::String registration_request;
 
   using IsRelocatable = ::std::true_type;
 };
-#endif // CXXBRIDGE1_STRUCT_OpaqueClientRegistrationStartResult
+#endif // CXXBRIDGE1_STRUCT_OpaqueStartClientRegistrationResult
 
-#ifndef CXXBRIDGE1_STRUCT_OpaqueClientRegistrationFinishParams
-#define CXXBRIDGE1_STRUCT_OpaqueClientRegistrationFinishParams
-struct OpaqueClientRegistrationFinishParams final {
+#ifndef CXXBRIDGE1_STRUCT_OpaqueFinishClientRegistrationParams
+#define CXXBRIDGE1_STRUCT_OpaqueFinishClientRegistrationParams
+struct OpaqueFinishClientRegistrationParams final {
   ::rust::String password;
   ::rust::String registration_response;
-  ::rust::String client_registration;
+  ::rust::String client_registration_state;
   ::rust::Vec<::rust::String> client_identifier;
   ::rust::Vec<::rust::String> server_identifier;
 
   using IsRelocatable = ::std::true_type;
 };
-#endif // CXXBRIDGE1_STRUCT_OpaqueClientRegistrationFinishParams
+#endif // CXXBRIDGE1_STRUCT_OpaqueFinishClientRegistrationParams
 
-#ifndef CXXBRIDGE1_STRUCT_OpaqueClientRegistrationFinishResult
-#define CXXBRIDGE1_STRUCT_OpaqueClientRegistrationFinishResult
-struct OpaqueClientRegistrationFinishResult final {
-  ::rust::String registration_upload;
+#ifndef CXXBRIDGE1_STRUCT_OpaqueFinishClientRegistrationResult
+#define CXXBRIDGE1_STRUCT_OpaqueFinishClientRegistrationResult
+struct OpaqueFinishClientRegistrationResult final {
+  ::rust::String registration_record;
   ::rust::String export_key;
   ::rust::String server_static_public_key;
 
   using IsRelocatable = ::std::true_type;
 };
-#endif // CXXBRIDGE1_STRUCT_OpaqueClientRegistrationFinishResult
+#endif // CXXBRIDGE1_STRUCT_OpaqueFinishClientRegistrationResult
 
-#ifndef CXXBRIDGE1_STRUCT_OpaqueClientLoginStartResult
-#define CXXBRIDGE1_STRUCT_OpaqueClientLoginStartResult
-struct OpaqueClientLoginStartResult final {
-  ::rust::String client_login;
-  ::rust::String credential_request;
+#ifndef CXXBRIDGE1_STRUCT_OpaqueStartClientLoginParams
+#define CXXBRIDGE1_STRUCT_OpaqueStartClientLoginParams
+struct OpaqueStartClientLoginParams final {
+  ::rust::String password;
 
   using IsRelocatable = ::std::true_type;
 };
-#endif // CXXBRIDGE1_STRUCT_OpaqueClientLoginStartResult
+#endif // CXXBRIDGE1_STRUCT_OpaqueStartClientLoginParams
 
-#ifndef CXXBRIDGE1_STRUCT_OpaqueClientLoginFinishParams
-#define CXXBRIDGE1_STRUCT_OpaqueClientLoginFinishParams
-struct OpaqueClientLoginFinishParams final {
-  ::rust::String client_login;
-  ::rust::String credential_response;
+#ifndef CXXBRIDGE1_STRUCT_OpaqueStartClientLoginResult
+#define CXXBRIDGE1_STRUCT_OpaqueStartClientLoginResult
+struct OpaqueStartClientLoginResult final {
+  ::rust::String client_login_state;
+  ::rust::String start_login_request;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueStartClientLoginResult
+
+#ifndef CXXBRIDGE1_STRUCT_OpaqueFinishClientLoginParams
+#define CXXBRIDGE1_STRUCT_OpaqueFinishClientLoginParams
+struct OpaqueFinishClientLoginParams final {
+  ::rust::String client_login_state;
+  ::rust::String login_response;
   ::rust::String password;
   ::rust::Vec<::rust::String> client_identifier;
   ::rust::Vec<::rust::String> server_identifier;
 
   using IsRelocatable = ::std::true_type;
 };
-#endif // CXXBRIDGE1_STRUCT_OpaqueClientLoginFinishParams
+#endif // CXXBRIDGE1_STRUCT_OpaqueFinishClientLoginParams
 
-#ifndef CXXBRIDGE1_STRUCT_OpaqueClientLoginFinishResult
-#define CXXBRIDGE1_STRUCT_OpaqueClientLoginFinishResult
-struct OpaqueClientLoginFinishResult final {
-  ::rust::String credential_finalization;
+#ifndef CXXBRIDGE1_STRUCT_OpaqueFinishClientLoginResult
+#define CXXBRIDGE1_STRUCT_OpaqueFinishClientLoginResult
+struct OpaqueFinishClientLoginResult final {
+  ::rust::String finish_login_request;
   ::rust::String session_key;
   ::rust::String export_key;
   ::rust::String server_static_public_key;
 
   using IsRelocatable = ::std::true_type;
 };
-#endif // CXXBRIDGE1_STRUCT_OpaqueClientLoginFinishResult
+#endif // CXXBRIDGE1_STRUCT_OpaqueFinishClientLoginResult
 
-#ifndef CXXBRIDGE1_STRUCT_OpaqueServerRegistrationStartParams
-#define CXXBRIDGE1_STRUCT_OpaqueServerRegistrationStartParams
-struct OpaqueServerRegistrationStartParams final {
+#ifndef CXXBRIDGE1_STRUCT_OpaqueCreateServerRegistrationResponseParams
+#define CXXBRIDGE1_STRUCT_OpaqueCreateServerRegistrationResponseParams
+struct OpaqueCreateServerRegistrationResponseParams final {
   ::rust::String server_setup;
   ::rust::String user_identifier;
   ::rust::String registration_request;
 
   using IsRelocatable = ::std::true_type;
 };
-#endif // CXXBRIDGE1_STRUCT_OpaqueServerRegistrationStartParams
+#endif // CXXBRIDGE1_STRUCT_OpaqueCreateServerRegistrationResponseParams
 
-#ifndef CXXBRIDGE1_STRUCT_OpaqueServerLoginStartParams
-#define CXXBRIDGE1_STRUCT_OpaqueServerLoginStartParams
-struct OpaqueServerLoginStartParams final {
+#ifndef CXXBRIDGE1_STRUCT_OpaqueCreateServerRegistrationResponseResult
+#define CXXBRIDGE1_STRUCT_OpaqueCreateServerRegistrationResponseResult
+struct OpaqueCreateServerRegistrationResponseResult final {
+  ::rust::String registration_response;
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueCreateServerRegistrationResponseResult
+
+#ifndef CXXBRIDGE1_STRUCT_OpaqueStartServerLoginParams
+#define CXXBRIDGE1_STRUCT_OpaqueStartServerLoginParams
+struct OpaqueStartServerLoginParams final {
   ::rust::String server_setup;
-  ::rust::Vec<::rust::String> password_file;
-  ::rust::String credential_request;
+  ::rust::Vec<::rust::String> registration_record;
+  ::rust::String start_login_request;
   ::rust::String user_identifier;
   ::rust::Vec<::rust::String> client_identifier;
   ::rust::Vec<::rust::String> server_identifier;
 
   using IsRelocatable = ::std::true_type;
 };
-#endif // CXXBRIDGE1_STRUCT_OpaqueServerLoginStartParams
+#endif // CXXBRIDGE1_STRUCT_OpaqueStartServerLoginParams
 
-#ifndef CXXBRIDGE1_STRUCT_OpaqueServerLoginStartResult
-#define CXXBRIDGE1_STRUCT_OpaqueServerLoginStartResult
-struct OpaqueServerLoginStartResult final {
-  ::rust::String server_login;
-  ::rust::String credential_response;
-
-  using IsRelocatable = ::std::true_type;
-};
-#endif // CXXBRIDGE1_STRUCT_OpaqueServerLoginStartResult
-
-#ifndef CXXBRIDGE1_STRUCT_OpaqueServerLoginFinishParams
-#define CXXBRIDGE1_STRUCT_OpaqueServerLoginFinishParams
-struct OpaqueServerLoginFinishParams final {
-  ::rust::String server_login;
-  ::rust::String credential_finalization;
+#ifndef CXXBRIDGE1_STRUCT_OpaqueStartServerLoginResult
+#define CXXBRIDGE1_STRUCT_OpaqueStartServerLoginResult
+struct OpaqueStartServerLoginResult final {
+  ::rust::String server_login_state;
+  ::rust::String login_response;
 
   using IsRelocatable = ::std::true_type;
 };
-#endif // CXXBRIDGE1_STRUCT_OpaqueServerLoginFinishParams
+#endif // CXXBRIDGE1_STRUCT_OpaqueStartServerLoginResult
 
-::OpaqueClientRegistrationStartResult opaque_client_registration_start(::rust::String password);
+#ifndef CXXBRIDGE1_STRUCT_OpaqueFinishServerLoginParams
+#define CXXBRIDGE1_STRUCT_OpaqueFinishServerLoginParams
+struct OpaqueFinishServerLoginParams final {
+  ::rust::String server_login_state;
+  ::rust::String finish_login_request;
 
-::OpaqueClientRegistrationFinishResult opaque_client_registration_finish(::OpaqueClientRegistrationFinishParams params);
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueFinishServerLoginParams
 
-::OpaqueClientLoginStartResult opaque_client_login_start(::rust::String password);
+#ifndef CXXBRIDGE1_STRUCT_OpaqueFinishServerLoginResult
+#define CXXBRIDGE1_STRUCT_OpaqueFinishServerLoginResult
+struct OpaqueFinishServerLoginResult final {
+  ::rust::String session_key;
 
-::std::unique_ptr<::OpaqueClientLoginFinishResult> opaque_client_login_finish(::OpaqueClientLoginFinishParams params);
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueFinishServerLoginResult
+
+::OpaqueStartClientRegistrationResult opaque_start_client_registration(::OpaqueStartClientRegistrationParams params);
+
+::OpaqueFinishClientRegistrationResult opaque_finish_client_registration(::OpaqueFinishClientRegistrationParams params);
+
+::OpaqueStartClientLoginResult opaque_start_client_login(::OpaqueStartClientLoginParams params);
+
+::std::unique_ptr<::OpaqueFinishClientLoginResult> opaque_finish_client_login(::OpaqueFinishClientLoginParams params);
 
 ::rust::String opaque_create_server_setup() noexcept;
 
-::rust::String opaque_server_registration_start(::OpaqueServerRegistrationStartParams params);
+::OpaqueCreateServerRegistrationResponseResult opaque_create_server_registration_response(::OpaqueCreateServerRegistrationResponseParams params);
 
-::rust::String opaque_server_registration_finish(::rust::String message);
+::OpaqueStartServerLoginResult opaque_start_server_login(::OpaqueStartServerLoginParams params);
 
-::OpaqueServerLoginStartResult opaque_server_login_start(::OpaqueServerLoginStartParams params);
-
-::rust::String opaque_server_login_finish(::OpaqueServerLoginFinishParams params);
+::OpaqueFinishServerLoginResult opaque_finish_server_login(::OpaqueFinishServerLoginParams params);

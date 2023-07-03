@@ -167,6 +167,6 @@
     ]
   },
   "dependencies": {
-    "@serenity-kit/opaque": "^0.6.0"
+    "@serenity-kit/opaque": "^0.7.0"
   }
 }

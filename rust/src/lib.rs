@@ -7,8 +7,8 @@ use opaque_ke::{ciphersuite::CipherSuite, errors::ProtocolError};
 use opaque_ke::{
     ClientLogin, ClientLoginFinishParameters, ClientRegistration,
     ClientRegistrationFinishParameters, CredentialFinalization, CredentialRequest,
-    CredentialResponse, Identifiers, RegistrationRequest, RegistrationResponse, RegistrationUpload,
-    ServerLogin, ServerLoginStartParameters, ServerRegistration, ServerSetup,
+    CredentialResponse, Identifiers, RegistrationRequest, RegistrationResponse, ServerLogin,
+    ServerLoginStartParameters, ServerRegistration, ServerSetup,
 };
 
 struct DefaultCipherSuite;
@@ -77,107 +77,128 @@ fn base64_decode<T: AsRef<[u8]>>(context: &'static str, input: T) -> OpaqueResul
 
 #[cxx::bridge]
 mod opaque_ffi {
-    struct OpaqueClientRegistrationStartResult {
-        client_registration: String,
+
+    struct OpaqueStartClientRegistrationParams {
+        password: String,
+    }
+
+    struct OpaqueStartClientRegistrationResult {
+        client_registration_state: String,
         registration_request: String,
     }
 
-    struct OpaqueClientRegistrationFinishParams {
+    struct OpaqueFinishClientRegistrationParams {
         password: String,
         registration_response: String,
-        client_registration: String,
+        client_registration_state: String,
         client_identifier: Vec<String>,
         server_identifier: Vec<String>,
     }
 
-    struct OpaqueClientRegistrationFinishResult {
-        registration_upload: String,
+    struct OpaqueFinishClientRegistrationResult {
+        registration_record: String,
         export_key: String,
         server_static_public_key: String,
     }
 
-    struct OpaqueClientLoginStartResult {
-        client_login: String,
-        credential_request: String,
+    struct OpaqueStartClientLoginParams {
+        password: String,
     }
 
-    struct OpaqueClientLoginFinishParams {
-        client_login: String,
-        credential_response: String,
+    struct OpaqueStartClientLoginResult {
+        client_login_state: String,
+        start_login_request: String,
+    }
+
+    struct OpaqueFinishClientLoginParams {
+        client_login_state: String,
+        login_response: String,
         password: String,
         client_identifier: Vec<String>,
         server_identifier: Vec<String>,
     }
 
-    struct OpaqueClientLoginFinishResult {
-        credential_finalization: String,
+    struct OpaqueFinishClientLoginResult {
+        finish_login_request: String,
         session_key: String,
         export_key: String,
         server_static_public_key: String,
     }
 
-    struct OpaqueServerRegistrationStartParams {
+    struct OpaqueCreateServerRegistrationResponseParams {
         server_setup: String,
         user_identifier: String,
         registration_request: String,
     }
 
-    struct OpaqueServerLoginStartParams {
+    struct OpaqueCreateServerRegistrationResponseResult {
+        registration_response: String,
+    }
+
+    struct OpaqueStartServerLoginParams {
         server_setup: String,
-        password_file: Vec<String>,
-        credential_request: String,
+        registration_record: Vec<String>,
+        start_login_request: String,
         user_identifier: String,
         client_identifier: Vec<String>,
         server_identifier: Vec<String>,
     }
 
-    struct OpaqueServerLoginStartResult {
-        server_login: String,
-        credential_response: String,
+    struct OpaqueStartServerLoginResult {
+        server_login_state: String,
+        login_response: String,
     }
 
-    struct OpaqueServerLoginFinishParams {
-        server_login: String,
-        credential_finalization: String,
+    struct OpaqueFinishServerLoginParams {
+        server_login_state: String,
+        finish_login_request: String,
+    }
+
+    struct OpaqueFinishServerLoginResult {
+        session_key: String,
     }
 
     extern "Rust" {
-        fn opaque_client_registration_start(
-            password: String,
-        ) -> Result<OpaqueClientRegistrationStartResult>;
+        fn opaque_start_client_registration(
+            params: OpaqueStartClientRegistrationParams,
+        ) -> Result<OpaqueStartClientRegistrationResult>;
 
-        fn opaque_client_registration_finish(
-            params: OpaqueClientRegistrationFinishParams,
-        ) -> Result<OpaqueClientRegistrationFinishResult>;
+        fn opaque_finish_client_registration(
+            params: OpaqueFinishClientRegistrationParams,
+        ) -> Result<OpaqueFinishClientRegistrationResult>;
 
-        fn opaque_client_login_start(password: String) -> Result<OpaqueClientLoginStartResult>;
+        fn opaque_start_client_login(
+            params: OpaqueStartClientLoginParams,
+        ) -> Result<OpaqueStartClientLoginResult>;
 
-        fn opaque_client_login_finish(
-            params: OpaqueClientLoginFinishParams,
-        ) -> Result<UniquePtr<OpaqueClientLoginFinishResult>>;
+        fn opaque_finish_client_login(
+            params: OpaqueFinishClientLoginParams,
+        ) -> Result<UniquePtr<OpaqueFinishClientLoginResult>>;
 
         fn opaque_create_server_setup() -> String;
 
-        fn opaque_server_registration_start(
-            params: OpaqueServerRegistrationStartParams,
-        ) -> Result<String>;
+        fn opaque_create_server_registration_response(
+            params: OpaqueCreateServerRegistrationResponseParams,
+        ) -> Result<OpaqueCreateServerRegistrationResponseResult>;
 
-        fn opaque_server_registration_finish(message: String) -> Result<String>;
+        fn opaque_start_server_login(
+            params: OpaqueStartServerLoginParams,
+        ) -> Result<OpaqueStartServerLoginResult>;
 
-        fn opaque_server_login_start(
-            params: OpaqueServerLoginStartParams,
-        ) -> Result<OpaqueServerLoginStartResult>;
-
-        fn opaque_server_login_finish(params: OpaqueServerLoginFinishParams) -> Result<String>;
+        fn opaque_finish_server_login(
+            params: OpaqueFinishServerLoginParams,
+        ) -> Result<OpaqueFinishServerLoginResult>;
     }
 }
 
 use opaque_ffi::{
-    OpaqueClientLoginFinishParams, OpaqueClientLoginFinishResult, OpaqueClientLoginStartResult,
-    OpaqueClientRegistrationFinishParams, OpaqueClientRegistrationFinishResult,
-    OpaqueClientRegistrationStartResult, OpaqueServerLoginFinishParams,
-    OpaqueServerLoginStartParams, OpaqueServerLoginStartResult,
-    OpaqueServerRegistrationStartParams,
+    OpaqueCreateServerRegistrationResponseParams, OpaqueCreateServerRegistrationResponseResult,
+    OpaqueFinishClientLoginParams, OpaqueFinishClientLoginResult,
+    OpaqueFinishClientRegistrationParams, OpaqueFinishClientRegistrationResult,
+    OpaqueFinishServerLoginParams, OpaqueFinishServerLoginResult, OpaqueStartClientLoginParams,
+    OpaqueStartClientLoginResult, OpaqueStartClientRegistrationParams,
+    OpaqueStartClientRegistrationResult, OpaqueStartServerLoginParams,
+    OpaqueStartServerLoginResult,
 };
 
 fn opaque_create_server_setup() -> String {
@@ -186,9 +207,9 @@ fn opaque_create_server_setup() -> String {
     BASE64.encode(setup.serialize())
 }
 
-fn opaque_server_registration_start(
-    params: OpaqueServerRegistrationStartParams,
-) -> Result<String, Error> {
+fn opaque_create_server_registration_response(
+    params: OpaqueCreateServerRegistrationResponseParams,
+) -> Result<OpaqueCreateServerRegistrationResponseResult, Error> {
     let server_setup = decode_server_setup(params.server_setup)?;
     let registration_request_bytes =
         base64_decode("registrationRequest", params.registration_request)?;
@@ -200,35 +221,28 @@ fn opaque_server_registration_start(
     )
     .map_err(from_protocol_error("start serverRegistration"))?;
     let registration_response_bytes = server_registration_start_result.message.serialize();
-    Ok(BASE64.encode(registration_response_bytes))
+    Ok(OpaqueCreateServerRegistrationResponseResult {
+        registration_response: BASE64.encode(registration_response_bytes),
+    })
 }
 
-fn opaque_server_registration_finish(message: String) -> Result<String, Error> {
-    let message_bytes = base64_decode("message", message)?;
-    let password_file = ServerRegistration::finish(
-        RegistrationUpload::<DefaultCipherSuite>::deserialize(&message_bytes)
-            .map_err(from_protocol_error("deserialize message"))?,
-    );
-    Ok(BASE64.encode(password_file.serialize()))
-}
-
-fn opaque_server_login_start(
-    params: OpaqueServerLoginStartParams,
-) -> Result<OpaqueServerLoginStartResult, Error> {
+fn opaque_start_server_login(
+    params: OpaqueStartServerLoginParams,
+) -> Result<OpaqueStartServerLoginResult, Error> {
     let server_setup = decode_server_setup(params.server_setup)?;
-    let password_file_param = get_optional_string(params.password_file)?;
-    let password_file_bytes = match password_file_param {
-        Some(pw) => base64_decode("passwordFile", pw).map(Some),
+    let registration_record_param = get_optional_string(params.registration_record)?;
+    let registration_record_bytes = match registration_record_param {
+        Some(pw) => base64_decode("registrationRecord", pw).map(Some),
         None => Ok(None),
     }?;
-    let credential_request_bytes = base64_decode("credentialRequest", params.credential_request)?;
+    let credential_request_bytes = base64_decode("startLoginRequest", params.start_login_request)?;
 
     let mut rng: OsRng = OsRng;
 
-    let password_file = match password_file_bytes.as_ref() {
+    let registration_record = match registration_record_bytes.as_ref() {
         Some(bytes) => Some(
             ServerRegistration::<DefaultCipherSuite>::deserialize(bytes)
-                .map_err(from_protocol_error("deserialize passwordFile"))?,
+                .map_err(from_protocol_error("deserialize registrationRecord"))?,
         ),
         None => None,
     };
@@ -247,37 +261,41 @@ fn opaque_server_login_start(
     let server_login_start_result = ServerLogin::start(
         &mut rng,
         &server_setup,
-        password_file,
+        registration_record,
         CredentialRequest::deserialize(&credential_request_bytes)
-            .map_err(from_protocol_error("deserialize credentialRequest"))?,
+            .map_err(from_protocol_error("deserialize startLoginRequest"))?,
         params.user_identifier.as_bytes(),
         start_params,
     )
-    .map_err(from_protocol_error("start serverLogin"))?;
+    .map_err(from_protocol_error("start server login"))?;
 
-    let credential_response = BASE64.encode(server_login_start_result.message.serialize());
-    let server_login = BASE64.encode(server_login_start_result.state.serialize());
+    let login_response = BASE64.encode(server_login_start_result.message.serialize());
+    let server_login_state = BASE64.encode(server_login_start_result.state.serialize());
 
-    let result = OpaqueServerLoginStartResult {
-        server_login,
-        credential_response,
+    let result = OpaqueStartServerLoginResult {
+        server_login_state,
+        login_response,
     };
     Ok(result)
 }
 
-fn opaque_server_login_finish(params: OpaqueServerLoginFinishParams) -> Result<String, Error> {
+fn opaque_finish_server_login(
+    params: OpaqueFinishServerLoginParams,
+) -> Result<OpaqueFinishServerLoginResult, Error> {
     let credential_finalization_bytes =
-        base64_decode("credentialFinalization", params.credential_finalization)?;
-    let state_bytes = base64_decode("serverLogin", params.server_login)?;
+        base64_decode("finishLoginRequest", params.finish_login_request)?;
+    let state_bytes = base64_decode("serverLoginState", params.server_login_state)?;
     let state = ServerLogin::<DefaultCipherSuite>::deserialize(&state_bytes)
-        .map_err(from_protocol_error("deserialize serverLogin"))?;
+        .map_err(from_protocol_error("deserialize serverLoginState"))?;
     let server_login_finish_result = state
         .finish(
             CredentialFinalization::deserialize(&credential_finalization_bytes)
-                .map_err(from_protocol_error("deserialize credentialFinalization"))?,
+                .map_err(from_protocol_error("deserialize finishLoginRequest"))?,
         )
-        .map_err(from_protocol_error("finish serverLogin"))?;
-    Ok(BASE64.encode(server_login_finish_result.session_key))
+        .map_err(from_protocol_error("finish server login"))?;
+    Ok(OpaqueFinishServerLoginResult {
+        session_key: BASE64.encode(server_login_finish_result.session_key),
+    })
 }
 
 fn decode_server_setup(data: String) -> Result<ServerSetup<DefaultCipherSuite>, Error> {
@@ -287,22 +305,21 @@ fn decode_server_setup(data: String) -> Result<ServerSetup<DefaultCipherSuite>, 
     })
 }
 
-fn opaque_client_registration_start(
-    password: String,
-) -> Result<OpaqueClientRegistrationStartResult, Error> {
+fn opaque_start_client_registration(
+    params: OpaqueStartClientRegistrationParams,
+) -> Result<OpaqueStartClientRegistrationResult, Error> {
     let mut client_rng = OsRng;
 
-    let client_registration_start_result =
-        ClientRegistration::<DefaultCipherSuite>::start(&mut client_rng, password.as_bytes())
-            .map_err(from_protocol_error("start clientRegistration"))?;
+    let client_registration_start_result = ClientRegistration::<DefaultCipherSuite>::start(
+        &mut client_rng,
+        params.password.as_bytes(),
+    )
+    .map_err(from_protocol_error("start client registration"))?;
 
-    let result = opaque_ffi::OpaqueClientRegistrationStartResult {
-        client_registration: BASE64.encode(client_registration_start_result.state.serialize()),
-        registration_request: BASE64.encode(
-            client_registration_start_result
-                .message
-                .serialize(),
-        ),
+    let result = opaque_ffi::OpaqueStartClientRegistrationResult {
+        client_registration_state: BASE64
+            .encode(client_registration_start_result.state.serialize()),
+        registration_request: BASE64.encode(client_registration_start_result.message.serialize()),
     };
     Ok(result)
 }
@@ -327,15 +344,16 @@ fn get_optional_string(ident: Vec<String>) -> Result<Option<String>, Error> {
     }
 }
 
-fn opaque_client_registration_finish(
-    params: OpaqueClientRegistrationFinishParams,
-) -> Result<OpaqueClientRegistrationFinishResult, Error> {
+fn opaque_finish_client_registration(
+    params: OpaqueFinishClientRegistrationParams,
+) -> Result<OpaqueFinishClientRegistrationResult, Error> {
     let registration_response_bytes =
         base64_decode("registrationResponse", params.registration_response)?;
     let mut rng: OsRng = OsRng;
-    let client_registration = base64_decode("clientRegistration", params.client_registration)?;
+    let client_registration =
+        base64_decode("clientRegistrationState", params.client_registration_state)?;
     let state = ClientRegistration::<DefaultCipherSuite>::deserialize(&client_registration)
-        .map_err(from_protocol_error("deserialize clientRegistration"))?;
+        .map_err(from_protocol_error("deserialize clientRegistrationState"))?;
 
     let server_ident = get_optional_string(params.server_identifier)?;
     let client_ident = get_optional_string(params.client_identifier)?;
@@ -356,11 +374,11 @@ fn opaque_client_registration_finish(
                 .map_err(from_protocol_error("deserialize registrationResponse"))?,
             finish_params,
         )
-        .map_err(from_protocol_error("finish clientRegistration"))?;
+        .map_err(from_protocol_error("finish client registration"))?;
 
     let message_bytes = client_finish_registration_result.message.serialize();
-    let result = OpaqueClientRegistrationFinishResult {
-        registration_upload: BASE64.encode(message_bytes),
+    let result = OpaqueFinishClientRegistrationResult {
+        registration_record: BASE64.encode(message_bytes),
         export_key: BASE64.encode(client_finish_registration_result.export_key),
         server_static_public_key: BASE64
             .encode(client_finish_registration_result.server_s_pk.serialize()),
@@ -368,27 +386,28 @@ fn opaque_client_registration_finish(
     Ok(result)
 }
 
-fn opaque_client_login_start(password: String) -> Result<OpaqueClientLoginStartResult, Error> {
+fn opaque_start_client_login(
+    params: OpaqueStartClientLoginParams,
+) -> Result<OpaqueStartClientLoginResult, Error> {
     let mut client_rng = OsRng;
     let client_login_start_result =
-        ClientLogin::<DefaultCipherSuite>::start(&mut client_rng, password.as_bytes())
+        ClientLogin::<DefaultCipherSuite>::start(&mut client_rng, params.password.as_bytes())
             .map_err(from_protocol_error("start clientLogin"))?;
 
-    let result = OpaqueClientLoginStartResult {
-        client_login: BASE64.encode(client_login_start_result.state.serialize()),
-        credential_request: BASE64.encode(client_login_start_result.message.serialize()),
+    let result = OpaqueStartClientLoginResult {
+        client_login_state: BASE64.encode(client_login_start_result.state.serialize()),
+        start_login_request: BASE64.encode(client_login_start_result.message.serialize()),
     };
     Ok(result)
 }
 
-fn opaque_client_login_finish(
-    params: OpaqueClientLoginFinishParams,
-) -> Result<cxx::UniquePtr<OpaqueClientLoginFinishResult>, Error> {
-    let credential_response_bytes =
-        base64_decode("credentialResponse", params.credential_response)?;
-    let state_bytes = base64_decode("clientLogin", params.client_login)?;
+fn opaque_finish_client_login(
+    params: OpaqueFinishClientLoginParams,
+) -> Result<cxx::UniquePtr<OpaqueFinishClientLoginResult>, Error> {
+    let credential_response_bytes = base64_decode("loginResponse", params.login_response)?;
+    let state_bytes = base64_decode("clientLoginState", params.client_login_state)?;
     let state = ClientLogin::<DefaultCipherSuite>::deserialize(&state_bytes)
-        .map_err(from_protocol_error("deserialize clientLogin"))?;
+        .map_err(from_protocol_error("deserialize clientLoginState"))?;
 
     let server_ident = get_optional_string(params.server_identifier)?;
     let client_ident = get_optional_string(params.client_identifier)?;
@@ -405,7 +424,7 @@ fn opaque_client_login_finish(
     let result = state.finish(
         params.password.as_bytes(),
         CredentialResponse::deserialize(&credential_response_bytes)
-            .map_err(from_protocol_error("deserialize credentialResponse"))?,
+            .map_err(from_protocol_error("deserialize loginResponse"))?,
         finish_params,
     );
 
@@ -415,8 +434,8 @@ fn opaque_client_login_finish(
     }
     let client_login_finish_result = result.unwrap();
 
-    let result = OpaqueClientLoginFinishResult {
-        credential_finalization: BASE64.encode(client_login_finish_result.message.serialize()),
+    let result = OpaqueFinishClientLoginResult {
+        finish_login_request: BASE64.encode(client_login_finish_result.message.serialize()),
         session_key: BASE64.encode(client_login_finish_result.session_key),
         export_key: BASE64.encode(client_login_finish_result.export_key),
         server_static_public_key: BASE64.encode(client_login_finish_result.server_s_pk.serialize()),
