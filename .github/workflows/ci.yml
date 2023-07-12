@@ -23,6 +23,14 @@ jobs:
       - name: Typecheck files
         run: yarn typecheck
 
+  cpplint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+      - run: pip install cpplint
+      - run: cpplint --recursive cpp
+
   build:
     runs-on: ubuntu-latest
     steps:
