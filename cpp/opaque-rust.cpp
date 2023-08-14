@@ -953,6 +953,8 @@ extern "C" {
 
 void cxxbridge1$opaque_create_server_setup(::rust::String *return$) noexcept;
 
+::rust::repr::PtrLen cxxbridge1$opaque_get_server_public_key(::rust::String *data, ::rust::String *return$) noexcept;
+
 ::rust::repr::PtrLen cxxbridge1$opaque_create_server_registration_response(::OpaqueCreateServerRegistrationResponseParams *params, ::OpaqueCreateServerRegistrationResponseResult *return$) noexcept;
 
 ::rust::repr::PtrLen cxxbridge1$opaque_start_server_login(::OpaqueStartServerLoginParams *params, ::OpaqueStartServerLoginResult *return$) noexcept;
@@ -1003,6 +1005,15 @@ void cxxbridge1$opaque_create_server_setup(::rust::String *return$) noexcept;
 ::rust::String opaque_create_server_setup() noexcept {
   ::rust::MaybeUninit<::rust::String> return$;
   cxxbridge1$opaque_create_server_setup(&return$.value);
+  return ::std::move(return$.value);
+}
+
+::rust::String opaque_get_server_public_key(::rust::String data) {
+  ::rust::MaybeUninit<::rust::String> return$;
+  ::rust::repr::PtrLen error$ = cxxbridge1$opaque_get_server_public_key(&data, &return$.value);
+  if (error$.ptr) {
+    throw ::rust::impl<::rust::Error>::error(error$);
+  }
   return ::std::move(return$.value);
 }
 

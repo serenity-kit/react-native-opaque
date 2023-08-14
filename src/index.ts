@@ -86,6 +86,8 @@ export namespace client {
 
 declare function opaque_createServerSetup(): string;
 
+declare function opaque_getServerPublicKey(serverSetup: string): string;
+
 declare function opaque_createServerRegistrationResponse(
   params: server.CreateRegistrationResponseParams
 ): server.CreateRegistrationResponseResult;
@@ -132,6 +134,7 @@ export namespace server {
   };
 
   export const createSetup = opaque_createServerSetup;
+  export const getPublicKey = opaque_getServerPublicKey;
   export const createRegistrationResponse =
     opaque_createServerRegistrationResponse;
   export const startLogin = opaque_startServerLogin;
