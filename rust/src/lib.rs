@@ -177,6 +177,8 @@ mod opaque_ffi {
 
         fn opaque_create_server_setup() -> String;
 
+        fn opaque_get_server_public_key(data: String) -> Result<String>;
+
         fn opaque_create_server_registration_response(
             params: OpaqueCreateServerRegistrationResponseParams,
         ) -> Result<OpaqueCreateServerRegistrationResponseResult>;
@@ -205,6 +207,12 @@ fn opaque_create_server_setup() -> String {
     let mut rng: OsRng = OsRng;
     let setup = ServerSetup::<DefaultCipherSuite>::new(&mut rng);
     BASE64.encode(setup.serialize())
+}
+
+fn opaque_get_server_public_key(data: String) -> Result<String, Error> {
+    let server_setup = decode_server_setup(data)?;
+    let pub_key = server_setup.keypair().public().serialize();
+    Ok(BASE64.encode(pub_key))
 }
 
 fn opaque_create_server_registration_response(

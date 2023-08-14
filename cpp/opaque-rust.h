@@ -884,6 +884,8 @@ struct OpaqueFinishServerLoginResult final {
 
 ::rust::String opaque_create_server_setup() noexcept;
 
+::rust::String opaque_get_server_public_key(::rust::String data);
+
 ::OpaqueCreateServerRegistrationResponseResult opaque_create_server_registration_response(::OpaqueCreateServerRegistrationResponseParams params);
 
 ::OpaqueStartServerLoginResult opaque_start_server_login(::OpaqueStartServerLoginParams params);
