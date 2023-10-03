@@ -6,16 +6,16 @@ set (CMAKE_CXX_STANDARD 11)
 # add directories to "include" search paths
 include_directories(
             ../cpp
-            ../node_modules/react-native/React
-            ../node_modules/react-native/React/Base
-            ../node_modules/react-native/ReactCommon/jsi
+            "${NODE_MODULES_DIR}/react-native/React"
+            "${NODE_MODULES_DIR}/react-native/React/Base"
+            "${NODE_MODULES_DIR}/react-native/ReactCommon/jsi"
 )
 
 # here we define a library target called "opaque"
 # which will be built from the listed source files
 add_library(opaque
   SHARED
-  ../node_modules/react-native/ReactCommon/jsi/jsi/jsi.cpp
+  "${NODE_MODULES_DIR}/react-native/ReactCommon/jsi/jsi/jsi.cpp"
   ../cpp/react-native-opaque.cpp
   ../cpp/react-native-opaque.h
   ../cpp/opaque-rust.h
