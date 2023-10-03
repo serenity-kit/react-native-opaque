@@ -5,7 +5,7 @@ ANDROID_TARGETS="i686-linux-android x86_64-linux-android aarch64-linux-android a
 
 for TARGET in $IOS_TARGETS
 do
-    cargo build --target $TARGET --release
+    cargo build --target $TARGET --release $EXTRA_ARGS
 done
 
 for TARGET in $ANDROID_TARGETS
