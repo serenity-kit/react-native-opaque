@@ -335,7 +335,7 @@ fn opaque_start_client_registration(
 fn get_optional_string(ident: Vec<String>) -> Result<Option<String>, Error> {
     match ident.len() {
         0 => Ok(None),
-        1 => ident.get(0).map_or_else(
+        1 => ident.first().map_or_else(
             || {
                 Err(Error::Input {
                     message: "error getting value at index 0".to_string(),
