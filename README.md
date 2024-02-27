@@ -72,7 +72,7 @@ Note: The `ready` Promise resolves right away on the native side.
 
 ## Documentation
 
-In depth documentation can be found at [https://opaque-documentation.netlify.app/](https://opaque-documentation.netlify.app/).
+In depth documentation can be found at [https://opaque-auth.com/](https://opaque-auth.com/).
 
 ## Contributing
 
