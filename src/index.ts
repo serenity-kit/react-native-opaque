@@ -1,8 +1,14 @@
 import { NativeModules } from 'react-native';
 
+// On iOS's New Architecture, reading the module is what installs the functions (ios/Opaque.mm, through the JSI
+// bindings hook), so install() is needed only where they aren't there yet.
 const Opaque = NativeModules.Opaque;
+const installed =
+  typeof (globalThis as any).opaque_startClientRegistration === 'function';
 
-if (Opaque && typeof Opaque.install === 'function') {
+if (installed) {
+  // Nothing to do.
+} else if (Opaque && typeof Opaque.install === 'function') {
   console.log('calling Opaque.install');
   Opaque.install();
 } else if (!Opaque) {
