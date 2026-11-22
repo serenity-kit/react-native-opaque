@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -91,6 +92,54 @@ namespace NativeOpaque {
     return result;
   }
 
+  uint32_t getUint32(jsi::Runtime& rt, jsi::Object& obj, const char* name) {
+    auto prop = obj.getProperty(rt, name);
+    if (!prop.isNumber()) {
+      throw jsi::JSError(rt, "keyStretching \"argon2id-custom\" needs a number for \"" + std::string(name) + "\"");
+    }
+    double value = prop.getNumber();
+    // The range check comes first (and also catches NaN), so the cast below never overflows.
+    if (!(value >= 0 && value <= 4294967295.0) || value != static_cast<double>(static_cast<uint32_t>(value))) {
+      throw jsi::JSError(rt, "keyStretching \"" + std::string(name) + "\" must be a whole number from 0 to 2^32-1");
+    }
+    return static_cast<uint32_t>(value);
+  }
+
+  // Reads keyStretching as @serenity-kit/opaque takes it: absent, a preset name, or
+  // { "argon2id-custom": { memory, iterations, parallelism } }. Rust checks the preset name and the numbers.
+  OpaqueKeyStretching getKeyStretching(jsi::Runtime& rt, jsi::Object& obj) {
+    OpaqueKeyStretching result = {
+      .preset = "",
+      .iterations = 0,
+      .memory = 0,
+      .parallelism = 0,
+    };
+    if (!obj.hasProperty(rt, "keyStretching")) {
+      return result;
+    }
+    auto prop = obj.getProperty(rt, "keyStretching");
+    if (prop.isUndefined() || prop.isNull()) {
+      return result;
+    }
+    if (prop.isString()) {
+      result.preset = std::string(prop.getString(rt).utf8(rt));
+      return result;
+    }
+    if (!prop.isObject() || !prop.getObject(rt).hasProperty(rt, "argon2id-custom")) {
+      throw jsi::JSError(rt, "\"keyStretching\" must be a preset name or { \"argon2id-custom\": { ... } }");
+    }
+    auto customProp = prop.getObject(rt).getProperty(rt, "argon2id-custom");
+    if (!customProp.isObject()) {
+      throw jsi::JSError(rt, "keyStretching \"argon2id-custom\" must be an object");
+    }
+    auto custom = customProp.getObject(rt);
+    result.preset = "argon2id-custom";
+    result.iterations = getUint32(rt, custom, "iterations");
+    result.memory = getUint32(rt, custom, "memory");
+    result.parallelism = getUint32(rt, custom, "parallelism");
+    return result;
+  }
+
   jsi::Value finishClientRegistration(jsi::Runtime& rt, jsi::Value& input) {
     auto obj = input.asObject(rt);
 
@@ -100,6 +149,7 @@ namespace NativeOpaque {
         .client_registration_state = getProp(rt, obj, "clientRegistrationState").utf8(rt),
         .client_identifier = getIdentifier(rt, obj, "client"),
         .server_identifier = getIdentifier(rt, obj, "server"),
+        .key_stretching = getKeyStretching(rt, obj),
     };
 
     auto finish = opaque_finish_client_registration(params);
@@ -130,6 +180,7 @@ namespace NativeOpaque {
         .password = getProp(rt, obj, "password").utf8(rt),
         .client_identifier = getIdentifier(rt, obj, "client"),
         .server_identifier = getIdentifier(rt, obj, "server"),
+        .key_stretching = getKeyStretching(rt, obj),
     };
     auto result = opaque_finish_client_login(params);
     if (result == nullptr) {
@@ -191,6 +242,8 @@ namespace NativeOpaque {
     struct OpaqueFinishServerLoginParams params = {
         .server_login_state = getProp(rt, obj, "serverLoginState").utf8(rt),
         .finish_login_request = getProp(rt, obj, "finishLoginRequest").utf8(rt),
+        .client_identifier = getIdentifier(rt, obj, "client"),
+        .server_identifier = getIdentifier(rt, obj, "server"),
     };
     auto result = opaque_finish_server_login(params);
     auto ret = jsi::Object(rt);

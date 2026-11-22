@@ -1,14 +1,17 @@
 use std::fmt;
 
-use argon2::Argon2;
+use argon2::{Algorithm, Argon2, Params, Version};
 use base64::{engine::general_purpose as b64, Engine as _};
+use generic_array::{ArrayLength, GenericArray};
+use opaque_ke::errors::InternalError;
+use opaque_ke::ksf::Ksf;
 use opaque_ke::rand::rngs::OsRng;
 use opaque_ke::{ciphersuite::CipherSuite, errors::ProtocolError};
 use opaque_ke::{
     ClientLogin, ClientLoginFinishParameters, ClientRegistration,
     ClientRegistrationFinishParameters, CredentialFinalization, CredentialRequest,
     CredentialResponse, Identifiers, RegistrationRequest, RegistrationResponse, ServerLogin,
-    ServerLoginStartParameters, ServerRegistration, ServerSetup,
+    ServerLoginParameters, ServerRegistration, ServerSetup,
 };
 
 struct DefaultCipherSuite;
@@ -16,19 +19,78 @@ struct DefaultCipherSuite;
 #[cfg(not(feature = "p256"))]
 impl CipherSuite for DefaultCipherSuite {
     type OprfCs = opaque_ke::Ristretto255;
-    type KeGroup = opaque_ke::Ristretto255;
-    type KeyExchange = opaque_ke::key_exchange::tripledh::TripleDh;
-    type Ksf = Argon2<'static>;
+    type KeyExchange = opaque_ke::TripleDh<opaque_ke::Ristretto255, sha2::Sha512>;
+    type Ksf = KeyStretching;
 }
 
+// Untested: updated to opaque-ke 4.0.0 alongside the default suite and compiled by clippy, but the interop
+// tests run only against the default suite. It is meant to match @serenity-kit/opaque-p256.
 #[cfg(feature = "p256")]
 impl CipherSuite for DefaultCipherSuite {
     type OprfCs = p256::NistP256;
-    type KeGroup = p256::NistP256;
-    type KeyExchange = opaque_ke::key_exchange::tripledh::TripleDh;
-    type Ksf = Argon2<'static>;
+    type KeyExchange = opaque_ke::TripleDh<p256::NistP256, sha2::Sha256>;
+    type Ksf = KeyStretching;
 }
 
+// Key stretching matches @serenity-kit/opaque's `keyStretching` option exactly: Argon2id v1.3 with an all-zero
+// salt of the recommended length (the OPRF output is already unique), and the same presets and default.
+// The same setting must be used for registration and every login, or the login fails.
+struct KeyStretching {
+    argon: Argon2<'static>,
+}
+
+impl Default for KeyStretching {
+    // Only needed because the cipher suite requires it; every call passes an explicit KeyStretching.
+    fn default() -> Self {
+        build_key_stretching(3, 1 << 16, 4).expect("the memory-constrained settings are valid")
+    }
+}
+
+// Argon2id with `iterations` passes, `memory` KiB and `parallelism` lanes.
+fn build_key_stretching(
+    iterations: u32,
+    memory: u32,
+    parallelism: u32,
+) -> Result<KeyStretching, Error> {
+    let params = Params::new(memory, iterations, parallelism, None).map_err(|_| Error::Input {
+        message: "Invalid keyStretching (argon2id) combination".to_string(),
+    })?;
+    Ok(KeyStretching {
+        argon: Argon2::new(Algorithm::Argon2id, Version::V0x13, params),
+    })
+}
+
+fn get_key_stretching(config: &OpaqueKeyStretching) -> Result<KeyStretching, Error> {
+    match config.preset.as_str() {
+        // https://www.rfc-editor.org/rfc/rfc9106.html#section-4-6.2, the default when nothing is given
+        "" | "memory-constrained" => build_key_stretching(3, 1 << 16, 4),
+        // https://www.rfc-editor.org/rfc/rfc9807.html#name-configurations, except 2^21-1 KiB as in
+        // @serenity-kit/opaque (2^21 crashes in browsers). About 2 GiB: too much for many phones.
+        // "rfc-draft-recommended" is deprecated and kept for compatibility with @serenity-kit/opaque.
+        "rfc-recommended" | "rfc-draft-recommended" => build_key_stretching(1, (1 << 21) - 1, 4),
+        "argon2id-custom" => {
+            build_key_stretching(config.iterations, config.memory, config.parallelism)
+        }
+        other => Err(Error::Input {
+            message: format!("unknown keyStretching \"{other}\""),
+        }),
+    }
+}
+
+impl Ksf for KeyStretching {
+    fn hash<L: ArrayLength<u8>>(
+        &self,
+        input: GenericArray<u8, L>,
+    ) -> Result<GenericArray<u8, L>, InternalError> {
+        let mut output = GenericArray::default();
+        self.argon
+            .hash_password_into(&input, &[0; argon2::RECOMMENDED_SALT_LEN], &mut output)
+            .map_err(|_| InternalError::KsfError)?;
+        Ok(output)
+    }
+}
+
+#[derive(Debug)]
 enum Error {
     Input {
         message: String,
@@ -47,13 +109,13 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Error::Input { message } => {
-                write!(f, "{}", message)
+                write!(f, "{message}")
             }
             Error::Protocol { context, error } => {
-                write!(f, "opaque protocol error at \"{}\"; {}", context, error)
+                write!(f, "opaque protocol error at \"{context}\"; {error:?}")
             }
             Error::Base64 { context, error } => {
-                write!(f, "base64 decoding failed at \"{}\"; {}", context, error)
+                write!(f, "base64 decoding failed at \"{context}\"; {error}")
             }
         }
     }
@@ -77,6 +139,15 @@ fn base64_decode<T: AsRef<[u8]>>(context: &'static str, input: T) -> OpaqueResul
 
 #[cxx::bridge]
 mod opaque_ffi {
+    // keyStretching as @serenity-kit/opaque takes it: `preset` is "" (the default, memory-constrained),
+    // "memory-constrained", "rfc-recommended", "rfc-draft-recommended" or "argon2id-custom". The three numbers
+    // are used only for "argon2id-custom" (memory in KiB).
+    struct OpaqueKeyStretching {
+        preset: String,
+        iterations: u32,
+        memory: u32,
+        parallelism: u32,
+    }
 
     struct OpaqueStartClientRegistrationParams {
         password: String,
@@ -93,6 +164,7 @@ mod opaque_ffi {
         client_registration_state: String,
         client_identifier: Vec<String>,
         server_identifier: Vec<String>,
+        key_stretching: OpaqueKeyStretching,
     }
 
     struct OpaqueFinishClientRegistrationResult {
@@ -116,6 +188,7 @@ mod opaque_ffi {
         password: String,
         client_identifier: Vec<String>,
         server_identifier: Vec<String>,
+        key_stretching: OpaqueKeyStretching,
     }
 
     struct OpaqueFinishClientLoginResult {
@@ -152,6 +225,8 @@ mod opaque_ffi {
     struct OpaqueFinishServerLoginParams {
         server_login_state: String,
         finish_login_request: String,
+        client_identifier: Vec<String>,
+        server_identifier: Vec<String>,
     }
 
     struct OpaqueFinishServerLoginResult {
@@ -197,10 +272,10 @@ use opaque_ffi::{
     OpaqueCreateServerRegistrationResponseParams, OpaqueCreateServerRegistrationResponseResult,
     OpaqueFinishClientLoginParams, OpaqueFinishClientLoginResult,
     OpaqueFinishClientRegistrationParams, OpaqueFinishClientRegistrationResult,
-    OpaqueFinishServerLoginParams, OpaqueFinishServerLoginResult, OpaqueStartClientLoginParams,
-    OpaqueStartClientLoginResult, OpaqueStartClientRegistrationParams,
-    OpaqueStartClientRegistrationResult, OpaqueStartServerLoginParams,
-    OpaqueStartServerLoginResult,
+    OpaqueFinishServerLoginParams, OpaqueFinishServerLoginResult, OpaqueKeyStretching,
+    OpaqueStartClientLoginParams, OpaqueStartClientLoginResult,
+    OpaqueStartClientRegistrationParams, OpaqueStartClientRegistrationResult,
+    OpaqueStartServerLoginParams, OpaqueStartServerLoginResult,
 };
 
 fn opaque_create_server_setup() -> String {
@@ -258,7 +333,7 @@ fn opaque_start_server_login(
     let server_ident = get_optional_string(params.server_identifier)?;
     let client_ident = get_optional_string(params.client_identifier)?;
 
-    let start_params = ServerLoginStartParameters {
+    let start_params = ServerLoginParameters {
         identifiers: Identifiers {
             client: client_ident.as_ref().map(|val| val.as_bytes()),
             server: server_ident.as_ref().map(|val| val.as_bytes()),
@@ -295,10 +370,20 @@ fn opaque_finish_server_login(
     let state_bytes = base64_decode("serverLoginState", params.server_login_state)?;
     let state = ServerLogin::<DefaultCipherSuite>::deserialize(&state_bytes)
         .map_err(from_protocol_error("deserialize serverLoginState"))?;
+    let server_ident = get_optional_string(params.server_identifier)?;
+    let client_ident = get_optional_string(params.client_identifier)?;
+    let finish_params = ServerLoginParameters {
+        identifiers: Identifiers {
+            client: client_ident.as_ref().map(|val| val.as_bytes()),
+            server: server_ident.as_ref().map(|val| val.as_bytes()),
+        },
+        context: None,
+    };
     let server_login_finish_result = state
         .finish(
             CredentialFinalization::deserialize(&credential_finalization_bytes)
                 .map_err(from_protocol_error("deserialize finishLoginRequest"))?,
+            finish_params,
         )
         .map_err(from_protocol_error("finish server login"))?;
     Ok(OpaqueFinishServerLoginResult {
@@ -345,8 +430,7 @@ fn get_optional_string(ident: Vec<String>) -> Result<Option<String>, Error> {
         ),
         len => Err(Error::Input {
             message: format!(
-                "invalid number of values, expected exactly 0 or 1 but received {}",
-                len
+                "invalid number of values, expected exactly 0 or 1 but received {len}"
             ),
         }),
     }
@@ -366,12 +450,13 @@ fn opaque_finish_client_registration(
     let server_ident = get_optional_string(params.server_identifier)?;
     let client_ident = get_optional_string(params.client_identifier)?;
 
+    let ksf = get_key_stretching(&params.key_stretching)?;
     let finish_params = ClientRegistrationFinishParameters::new(
         Identifiers {
             client: client_ident.as_ref().map(|val| val.as_bytes()),
             server: server_ident.as_ref().map(|val| val.as_bytes()),
         },
-        None,
+        Some(&ksf),
     );
 
     let client_finish_registration_result = state
@@ -420,16 +505,19 @@ fn opaque_finish_client_login(
     let server_ident = get_optional_string(params.server_identifier)?;
     let client_ident = get_optional_string(params.client_identifier)?;
 
+    let ksf = get_key_stretching(&params.key_stretching)?;
     let finish_params = ClientLoginFinishParameters::new(
         None,
         Identifiers {
             client: client_ident.as_ref().map(|val| val.as_bytes()),
             server: server_ident.as_ref().map(|val| val.as_bytes()),
         },
-        None,
+        Some(&ksf),
     );
 
+    let mut client_rng = OsRng;
     let result = state.finish(
+        &mut client_rng,
         params.password.as_bytes(),
         CredentialResponse::deserialize(&credential_response_bytes)
             .map_err(from_protocol_error("deserialize loginResponse"))?,
@@ -451,3 +539,4 @@ fn opaque_finish_client_login(
 
     Ok(cxx::UniquePtr::new(result))
 }
+
