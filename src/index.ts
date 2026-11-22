@@ -16,6 +16,24 @@ export type CustomIdentifiers = {
   server?: string;
 };
 
+/**
+ * Key stretching for the client's finishRegistration and finishLogin, as in @serenity-kit/opaque.
+ * Defaults to 'memory-constrained' (Argon2id, 3 iterations, 2^16 KiB, 4 lanes). 'rfc-recommended' uses
+ * 2^21-1 KiB (about 2 GiB), which many phones can't spare. 'rfc-draft-recommended' is deprecated and the
+ * same as 'rfc-recommended'. Registration and every login must use the same setting.
+ */
+export type KeyStretchingFunctionConfig =
+  | 'rfc-recommended'
+  | 'rfc-draft-recommended'
+  | 'memory-constrained'
+  | {
+      'argon2id-custom': {
+        iterations: number;
+        memory: number;
+        parallelism: number;
+      };
+    };
+
 declare function opaque_startClientRegistration(
   params: client.StartRegistrationParams
 ): client.StartRegistrationResult;
@@ -47,6 +65,7 @@ export namespace client {
     registrationResponse: string;
     clientRegistrationState: string;
     identifiers?: CustomIdentifiers;
+    keyStretching?: KeyStretchingFunctionConfig;
   };
 
   export type FinishRegistrationResult = {
@@ -69,6 +88,7 @@ export namespace client {
     loginResponse: string;
     password: string;
     identifiers?: CustomIdentifiers;
+    keyStretching?: KeyStretchingFunctionConfig;
   };
 
   export type FinishLoginResult = {
@@ -127,6 +147,7 @@ export namespace server {
   export type FinishLoginParams = {
     serverLoginState: string;
     finishLoginRequest: string;
+    identifiers?: CustomIdentifiers;
   };
 
   export type FinishLoginResult = {

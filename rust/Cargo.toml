@@ -12,12 +12,20 @@ lto = true
 [features]
 default = []
 p256 = ["dep:p256"]
+# Compiles the C++ side of the bridge on the build machine so the interop tests can link. Never used for phones.
+host-test = ["dep:cxx-build"]
 
 [dependencies]
-argon2 = "0.5.0"
+# These four match @serenity-kit/opaque 1.1.0, the server library, so both sides speak the same RFC 9807 OPAQUE.
+argon2 = "0.5"
+opaque-ke = { version = "4.0.0", features = ["argon2"] }
+generic-array = "=0.14.7"
+sha2 = "0.10.9"
 cxx = { version = "1.0.94" }
-opaque-ke = { version = "3.0.0-pre.4", features = ["argon2"] }
-base64 = "0.21.0"
+base64 = "0.22.1"
 rand = { version = "0.8.5" }
 getrandom = { version = "0.2.8" }
 p256 = { version = "0.13", default-features = false, features = ["hash2curve", "voprf"], optional = true }
+
+[build-dependencies]
+cxx-build = { version = "1.0.94", optional = true }

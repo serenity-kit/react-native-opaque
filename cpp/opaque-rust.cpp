@@ -12,6 +12,18 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+#if __cplusplus >= 202002L
+#include <ranges>
+#endif
+
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Wmismatched-new-delete"
+#pragma GCC diagnostic ignored "-Wmissing-declarations"
+#pragma GCC diagnostic ignored "-Wshadow"
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wdollar-in-identifier-extension"
+#endif // __clang__
+#endif // __GNUC__
 
 namespace rust {
 inline namespace cxxbridge1 {
@@ -51,6 +63,10 @@ public:
   String(const char *, std::size_t);
   String(const char16_t *);
   String(const char16_t *, std::size_t);
+#ifdef __cpp_char8_t
+  String(const char8_t *s);
+  String(const char8_t *s, std::size_t len);
+#endif
 
   static String lossy(const std::string &) noexcept;
   static String lossy(const char *) noexcept;
@@ -58,12 +74,14 @@ public:
   static String lossy(const char16_t *) noexcept;
   static String lossy(const char16_t *, std::size_t) noexcept;
 
-  String &operator=(const String &) &noexcept;
-  String &operator=(String &&) &noexcept;
+  String &operator=(const String &) & noexcept;
+  String &operator=(String &&) & noexcept;
 
   explicit operator std::string() const;
 
   const char *data() const noexcept;
+  char *data() noexcept;
+
   std::size_t size() const noexcept;
   std::size_t length() const noexcept;
   bool empty() const noexcept;
@@ -114,8 +132,8 @@ template <>
 struct copy_assignable_if<false> {
   copy_assignable_if() noexcept = default;
   copy_assignable_if(const copy_assignable_if &) noexcept = default;
-  copy_assignable_if &operator=(const copy_assignable_if &) &noexcept = delete;
-  copy_assignable_if &operator=(copy_assignable_if &&) &noexcept = default;
+  copy_assignable_if &operator=(const copy_assignable_if &) & noexcept = delete;
+  copy_assignable_if &operator=(copy_assignable_if &&) & noexcept = default;
 };
 } // namespace detail
 
@@ -128,8 +146,11 @@ public:
   Slice() noexcept;
   Slice(T *, std::size_t count) noexcept;
 
-  Slice &operator=(const Slice<T> &) &noexcept = default;
-  Slice &operator=(Slice<T> &&) &noexcept = default;
+  template <typename C>
+  explicit Slice(C &c) : Slice(c.data(), c.size()) {}
+
+  Slice &operator=(const Slice<T> &) & noexcept = default;
+  Slice &operator=(Slice<T> &&) & noexcept = default;
 
   T *data() const noexcept;
   std::size_t size() const noexcept;
@@ -161,10 +182,20 @@ private:
   std::array<std::uintptr_t, 2> repr;
 };
 
+#ifdef __cpp_deduction_guides
+template <typename C>
+explicit Slice(C &c)
+    -> Slice<std::remove_reference_t<decltype(*std::declval<C>().data())>>;
+#endif // __cpp_deduction_guides
+
 template <typename T>
 class Slice<T>::iterator final {
 public:
+#if __cplusplus >= 202002L
+  using iterator_category = std::contiguous_iterator_tag;
+#else
   using iterator_category = std::random_access_iterator_tag;
+#endif
   using value_type = T;
   using difference_type = std::ptrdiff_t;
   using pointer = typename std::add_pointer<T>::type;
@@ -182,6 +213,9 @@ public:
   iterator &operator+=(difference_type) noexcept;
   iterator &operator-=(difference_type) noexcept;
   iterator operator+(difference_type) const noexcept;
+  friend inline iterator operator+(difference_type lhs, iterator rhs) noexcept {
+    return rhs + lhs;
+  }
   iterator operator-(difference_type) const noexcept;
   difference_type operator-(const iterator &) const noexcept;
 
@@ -415,7 +449,7 @@ public:
   Vec(Vec &&) noexcept;
   ~Vec() noexcept;
 
-  Vec &operator=(Vec &&) &noexcept;
+  Vec &operator=(Vec &&) & noexcept;
   Vec &operator=(const Vec &) &;
 
   std::size_t size() const noexcept;
@@ -489,7 +523,7 @@ Vec<T>::~Vec() noexcept {
 }
 
 template <typename T>
-Vec<T> &Vec<T>::operator=(Vec &&other) &noexcept {
+Vec<T> &Vec<T>::operator=(Vec &&other) & noexcept {
   this->drop();
   this->repr = other.repr;
   new (&other) Vec();
@@ -508,11 +542,6 @@ Vec<T> &Vec<T>::operator=(const Vec &other) & {
 template <typename T>
 bool Vec<T>::empty() const noexcept {
   return this->size() == 0;
-}
-
-template <typename T>
-T *Vec<T>::data() noexcept {
-  return const_cast<T *>(const_cast<const Vec<T> *>(this)->data());
 }
 
 template <typename T>
@@ -649,7 +678,7 @@ public:
   ~Error() noexcept override;
 
   Error &operator=(const Error &) &;
-  Error &operator=(Error &&) &noexcept;
+  Error &operator=(Error &&) & noexcept;
 
   const char *what() const noexcept override;
 
@@ -774,10 +803,24 @@ public:
     return error;
   }
 };
+
+template <bool> struct deleter_if {
+  template <typename T> void operator()(T *) {}
+};
+template <> struct deleter_if<true> {
+  template <typename T> void operator()(T *ptr) { ptr->~T(); }
+};
 } // namespace
 } // namespace cxxbridge1
 } // namespace rust
 
+#if __cplusplus >= 201402L
+#define CXX_DEFAULT_VALUE(value) = value
+#else
+#define CXX_DEFAULT_VALUE(value)
+#endif
+
+struct OpaqueKeyStretching;
 struct OpaqueStartClientRegistrationParams;
 struct OpaqueStartClientRegistrationResult;
 struct OpaqueFinishClientRegistrationParams;
@@ -792,6 +835,18 @@ struct OpaqueStartServerLoginParams;
 struct OpaqueStartServerLoginResult;
 struct OpaqueFinishServerLoginParams;
 struct OpaqueFinishServerLoginResult;
+
+#ifndef CXXBRIDGE1_STRUCT_OpaqueKeyStretching
+#define CXXBRIDGE1_STRUCT_OpaqueKeyStretching
+struct OpaqueKeyStretching final {
+  ::rust::String preset;
+  ::std::uint32_t iterations CXX_DEFAULT_VALUE(0);
+  ::std::uint32_t memory CXX_DEFAULT_VALUE(0);
+  ::std::uint32_t parallelism CXX_DEFAULT_VALUE(0);
+
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_OpaqueKeyStretching
 
 #ifndef CXXBRIDGE1_STRUCT_OpaqueStartClientRegistrationParams
 #define CXXBRIDGE1_STRUCT_OpaqueStartClientRegistrationParams
@@ -820,6 +875,7 @@ struct OpaqueFinishClientRegistrationParams final {
   ::rust::String client_registration_state;
   ::rust::Vec<::rust::String> client_identifier;
   ::rust::Vec<::rust::String> server_identifier;
+  ::OpaqueKeyStretching key_stretching;
 
   using IsRelocatable = ::std::true_type;
 };
@@ -863,6 +919,7 @@ struct OpaqueFinishClientLoginParams final {
   ::rust::String password;
   ::rust::Vec<::rust::String> client_identifier;
   ::rust::Vec<::rust::String> server_identifier;
+  ::OpaqueKeyStretching key_stretching;
 
   using IsRelocatable = ::std::true_type;
 };
@@ -929,6 +986,8 @@ struct OpaqueStartServerLoginResult final {
 struct OpaqueFinishServerLoginParams final {
   ::rust::String server_login_state;
   ::rust::String finish_login_request;
+  ::rust::Vec<::rust::String> client_identifier;
+  ::rust::Vec<::rust::String> server_identifier;
 
   using IsRelocatable = ::std::true_type;
 };
@@ -944,29 +1003,29 @@ struct OpaqueFinishServerLoginResult final {
 #endif // CXXBRIDGE1_STRUCT_OpaqueFinishServerLoginResult
 
 extern "C" {
-::rust::repr::PtrLen cxxbridge1$opaque_start_client_registration(::OpaqueStartClientRegistrationParams *params, ::OpaqueStartClientRegistrationResult *return$) noexcept;
+::rust::repr::PtrLen cxxbridge1$205$opaque_start_client_registration(::OpaqueStartClientRegistrationParams *params, ::OpaqueStartClientRegistrationResult *return$) noexcept;
 
-::rust::repr::PtrLen cxxbridge1$opaque_finish_client_registration(::OpaqueFinishClientRegistrationParams *params, ::OpaqueFinishClientRegistrationResult *return$) noexcept;
+::rust::repr::PtrLen cxxbridge1$205$opaque_finish_client_registration(::OpaqueFinishClientRegistrationParams *params, ::OpaqueFinishClientRegistrationResult *return$) noexcept;
 
-::rust::repr::PtrLen cxxbridge1$opaque_start_client_login(::OpaqueStartClientLoginParams *params, ::OpaqueStartClientLoginResult *return$) noexcept;
+::rust::repr::PtrLen cxxbridge1$205$opaque_start_client_login(::OpaqueStartClientLoginParams *params, ::OpaqueStartClientLoginResult *return$) noexcept;
 
-::rust::repr::PtrLen cxxbridge1$opaque_finish_client_login(::OpaqueFinishClientLoginParams *params, ::std::unique_ptr<::OpaqueFinishClientLoginResult> *return$) noexcept;
+::rust::repr::PtrLen cxxbridge1$205$opaque_finish_client_login(::OpaqueFinishClientLoginParams *params, ::std::unique_ptr<::OpaqueFinishClientLoginResult> *return$) noexcept;
 
-void cxxbridge1$opaque_create_server_setup(::rust::String *return$) noexcept;
+void cxxbridge1$205$opaque_create_server_setup(::rust::String *return$) noexcept;
 
-::rust::repr::PtrLen cxxbridge1$opaque_get_server_public_key(::rust::String *data, ::rust::String *return$) noexcept;
+::rust::repr::PtrLen cxxbridge1$205$opaque_get_server_public_key(::rust::String *data, ::rust::String *return$) noexcept;
 
-::rust::repr::PtrLen cxxbridge1$opaque_create_server_registration_response(::OpaqueCreateServerRegistrationResponseParams *params, ::OpaqueCreateServerRegistrationResponseResult *return$) noexcept;
+::rust::repr::PtrLen cxxbridge1$205$opaque_create_server_registration_response(::OpaqueCreateServerRegistrationResponseParams *params, ::OpaqueCreateServerRegistrationResponseResult *return$) noexcept;
 
-::rust::repr::PtrLen cxxbridge1$opaque_start_server_login(::OpaqueStartServerLoginParams *params, ::OpaqueStartServerLoginResult *return$) noexcept;
+::rust::repr::PtrLen cxxbridge1$205$opaque_start_server_login(::OpaqueStartServerLoginParams *params, ::OpaqueStartServerLoginResult *return$) noexcept;
 
-::rust::repr::PtrLen cxxbridge1$opaque_finish_server_login(::OpaqueFinishServerLoginParams *params, ::OpaqueFinishServerLoginResult *return$) noexcept;
+::rust::repr::PtrLen cxxbridge1$205$opaque_finish_server_login(::OpaqueFinishServerLoginParams *params, ::OpaqueFinishServerLoginResult *return$) noexcept;
 } // extern "C"
 
 ::OpaqueStartClientRegistrationResult opaque_start_client_registration(::OpaqueStartClientRegistrationParams params) {
   ::rust::ManuallyDrop<::OpaqueStartClientRegistrationParams> params$(::std::move(params));
   ::rust::MaybeUninit<::OpaqueStartClientRegistrationResult> return$;
-  ::rust::repr::PtrLen error$ = cxxbridge1$opaque_start_client_registration(&params$.value, &return$.value);
+  ::rust::repr::PtrLen error$ = cxxbridge1$205$opaque_start_client_registration(&params$.value, &return$.value);
   if (error$.ptr) {
     throw ::rust::impl<::rust::Error>::error(error$);
   }
@@ -976,7 +1035,7 @@ void cxxbridge1$opaque_create_server_setup(::rust::String *return$) noexcept;
 ::OpaqueFinishClientRegistrationResult opaque_finish_client_registration(::OpaqueFinishClientRegistrationParams params) {
   ::rust::ManuallyDrop<::OpaqueFinishClientRegistrationParams> params$(::std::move(params));
   ::rust::MaybeUninit<::OpaqueFinishClientRegistrationResult> return$;
-  ::rust::repr::PtrLen error$ = cxxbridge1$opaque_finish_client_registration(&params$.value, &return$.value);
+  ::rust::repr::PtrLen error$ = cxxbridge1$205$opaque_finish_client_registration(&params$.value, &return$.value);
   if (error$.ptr) {
     throw ::rust::impl<::rust::Error>::error(error$);
   }
@@ -986,7 +1045,7 @@ void cxxbridge1$opaque_create_server_setup(::rust::String *return$) noexcept;
 ::OpaqueStartClientLoginResult opaque_start_client_login(::OpaqueStartClientLoginParams params) {
   ::rust::ManuallyDrop<::OpaqueStartClientLoginParams> params$(::std::move(params));
   ::rust::MaybeUninit<::OpaqueStartClientLoginResult> return$;
-  ::rust::repr::PtrLen error$ = cxxbridge1$opaque_start_client_login(&params$.value, &return$.value);
+  ::rust::repr::PtrLen error$ = cxxbridge1$205$opaque_start_client_login(&params$.value, &return$.value);
   if (error$.ptr) {
     throw ::rust::impl<::rust::Error>::error(error$);
   }
@@ -996,7 +1055,7 @@ void cxxbridge1$opaque_create_server_setup(::rust::String *return$) noexcept;
 ::std::unique_ptr<::OpaqueFinishClientLoginResult> opaque_finish_client_login(::OpaqueFinishClientLoginParams params) {
   ::rust::ManuallyDrop<::OpaqueFinishClientLoginParams> params$(::std::move(params));
   ::rust::MaybeUninit<::std::unique_ptr<::OpaqueFinishClientLoginResult>> return$;
-  ::rust::repr::PtrLen error$ = cxxbridge1$opaque_finish_client_login(&params$.value, &return$.value);
+  ::rust::repr::PtrLen error$ = cxxbridge1$205$opaque_finish_client_login(&params$.value, &return$.value);
   if (error$.ptr) {
     throw ::rust::impl<::rust::Error>::error(error$);
   }
@@ -1005,13 +1064,13 @@ void cxxbridge1$opaque_create_server_setup(::rust::String *return$) noexcept;
 
 ::rust::String opaque_create_server_setup() noexcept {
   ::rust::MaybeUninit<::rust::String> return$;
-  cxxbridge1$opaque_create_server_setup(&return$.value);
+  cxxbridge1$205$opaque_create_server_setup(&return$.value);
   return ::std::move(return$.value);
 }
 
 ::rust::String opaque_get_server_public_key(::rust::String data) {
   ::rust::MaybeUninit<::rust::String> return$;
-  ::rust::repr::PtrLen error$ = cxxbridge1$opaque_get_server_public_key(&data, &return$.value);
+  ::rust::repr::PtrLen error$ = cxxbridge1$205$opaque_get_server_public_key(&data, &return$.value);
   if (error$.ptr) {
     throw ::rust::impl<::rust::Error>::error(error$);
   }
@@ -1021,7 +1080,7 @@ void cxxbridge1$opaque_create_server_setup(::rust::String *return$) noexcept;
 ::OpaqueCreateServerRegistrationResponseResult opaque_create_server_registration_response(::OpaqueCreateServerRegistrationResponseParams params) {
   ::rust::ManuallyDrop<::OpaqueCreateServerRegistrationResponseParams> params$(::std::move(params));
   ::rust::MaybeUninit<::OpaqueCreateServerRegistrationResponseResult> return$;
-  ::rust::repr::PtrLen error$ = cxxbridge1$opaque_create_server_registration_response(&params$.value, &return$.value);
+  ::rust::repr::PtrLen error$ = cxxbridge1$205$opaque_create_server_registration_response(&params$.value, &return$.value);
   if (error$.ptr) {
     throw ::rust::impl<::rust::Error>::error(error$);
   }
@@ -1031,7 +1090,7 @@ void cxxbridge1$opaque_create_server_setup(::rust::String *return$) noexcept;
 ::OpaqueStartServerLoginResult opaque_start_server_login(::OpaqueStartServerLoginParams params) {
   ::rust::ManuallyDrop<::OpaqueStartServerLoginParams> params$(::std::move(params));
   ::rust::MaybeUninit<::OpaqueStartServerLoginResult> return$;
-  ::rust::repr::PtrLen error$ = cxxbridge1$opaque_start_server_login(&params$.value, &return$.value);
+  ::rust::repr::PtrLen error$ = cxxbridge1$205$opaque_start_server_login(&params$.value, &return$.value);
   if (error$.ptr) {
     throw ::rust::impl<::rust::Error>::error(error$);
   }
@@ -1041,7 +1100,7 @@ void cxxbridge1$opaque_create_server_setup(::rust::String *return$) noexcept;
 ::OpaqueFinishServerLoginResult opaque_finish_server_login(::OpaqueFinishServerLoginParams params) {
   ::rust::ManuallyDrop<::OpaqueFinishServerLoginParams> params$(::std::move(params));
   ::rust::MaybeUninit<::OpaqueFinishServerLoginResult> return$;
-  ::rust::repr::PtrLen error$ = cxxbridge1$opaque_finish_server_login(&params$.value, &return$.value);
+  ::rust::repr::PtrLen error$ = cxxbridge1$205$opaque_finish_server_login(&params$.value, &return$.value);
   if (error$.ptr) {
     throw ::rust::impl<::rust::Error>::error(error$);
   }
@@ -1049,6 +1108,7 @@ void cxxbridge1$opaque_create_server_setup(::rust::String *return$) noexcept;
 }
 
 extern "C" {
+static_assert(::rust::detail::is_complete<::std::remove_extent<::OpaqueFinishClientLoginResult>::type>::value, "definition of `::OpaqueFinishClientLoginResult` is required");
 static_assert(sizeof(::std::unique_ptr<::OpaqueFinishClientLoginResult>) == sizeof(void *), "");
 static_assert(alignof(::std::unique_ptr<::OpaqueFinishClientLoginResult>) == alignof(void *), "");
 void cxxbridge1$unique_ptr$OpaqueFinishClientLoginResult$null(::std::unique_ptr<::OpaqueFinishClientLoginResult> *ptr) noexcept {
@@ -1059,16 +1119,16 @@ void cxxbridge1$unique_ptr$OpaqueFinishClientLoginResult$null(::std::unique_ptr<
   ::new (ptr) ::std::unique_ptr<::OpaqueFinishClientLoginResult>(uninit);
   return uninit;
 }
-void cxxbridge1$unique_ptr$OpaqueFinishClientLoginResult$raw(::std::unique_ptr<::OpaqueFinishClientLoginResult> *ptr, ::OpaqueFinishClientLoginResult *raw) noexcept {
+void cxxbridge1$unique_ptr$OpaqueFinishClientLoginResult$raw(::std::unique_ptr<::OpaqueFinishClientLoginResult> *ptr, ::std::unique_ptr<::OpaqueFinishClientLoginResult>::pointer raw) noexcept {
   ::new (ptr) ::std::unique_ptr<::OpaqueFinishClientLoginResult>(raw);
 }
-::OpaqueFinishClientLoginResult const *cxxbridge1$unique_ptr$OpaqueFinishClientLoginResult$get(::std::unique_ptr<::OpaqueFinishClientLoginResult> const &ptr) noexcept {
+::std::unique_ptr<::OpaqueFinishClientLoginResult>::element_type const *cxxbridge1$unique_ptr$OpaqueFinishClientLoginResult$get(::std::unique_ptr<::OpaqueFinishClientLoginResult> const &ptr) noexcept {
   return ptr.get();
 }
-::OpaqueFinishClientLoginResult *cxxbridge1$unique_ptr$OpaqueFinishClientLoginResult$release(::std::unique_ptr<::OpaqueFinishClientLoginResult> &ptr) noexcept {
+::std::unique_ptr<::OpaqueFinishClientLoginResult>::pointer cxxbridge1$unique_ptr$OpaqueFinishClientLoginResult$release(::std::unique_ptr<::OpaqueFinishClientLoginResult> &ptr) noexcept {
   return ptr.release();
 }
 void cxxbridge1$unique_ptr$OpaqueFinishClientLoginResult$drop(::std::unique_ptr<::OpaqueFinishClientLoginResult> *ptr) noexcept {
-  ptr->~unique_ptr();
+  ::rust::deleter_if<::rust::detail::is_complete<::OpaqueFinishClientLoginResult>::value>{}(ptr);
 }
 } // extern "C"
