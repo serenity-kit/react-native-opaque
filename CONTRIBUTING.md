@@ -14,6 +14,14 @@ rustup target add i686-linux-android x86_64-linux-android aarch64-linux-android 
 ./build-all.sh                 # (inside the rust directory)
 ```
 
+To run the interop tests, which check the Rust library against the real @serenity-kit/opaque server and client (needs Node.js):
+
+```bash
+cd rust
+npm install --prefix interop --no-package-lock
+cargo test --features host-test
+```
+
 To pass additional arguments to cargo you can set the `EXTRA_ARGS` env variable.
 For example, to do a release build with p256 feature:
 

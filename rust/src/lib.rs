@@ -540,3 +540,5 @@ fn opaque_finish_client_login(
     Ok(cxx::UniquePtr::new(result))
 }
 
+#[cfg(test)]
+mod interop_tests;

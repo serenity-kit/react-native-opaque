@@ -56,3 +56,42 @@ jobs:
       - name: clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
         working-directory: ./rust
+
+  interop:
+    # Runs the Rust library against @serenity-kit/opaque (rust/src/interop_tests.rs).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: install rustup
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup-init.sh
+          sh rustup-init.sh -y --default-toolchain stable
+      - name: install the server library
+        run: npm install --prefix interop --no-package-lock --no-audit --no-fund
+        working-directory: ./rust
+      - name: interop tests
+        run: cargo test --features host-test
+        working-directory: ./rust
+
+  cxx-bindings:
+    # cpp/opaque-rust.* are generated from rust/src/lib.rs by rust/gen-cxx.sh; this fails if they're out of date.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: install rustup
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup-init.sh
+          sh rustup-init.sh -y --default-toolchain stable
+      - name: install cxxbridge at the cxx version in Cargo.lock
+        run: |
+          version=$(awk '/^name = "cxx"$/ { getline; gsub(/"/, "", $3); print $3 }' Cargo.lock)
+          cargo install cxxbridge-cmd --version "$version" --locked
+        working-directory: ./rust
+      - name: regenerate and compare
+        run: |
+          ./gen-cxx.sh
+          git diff --exit-code -- ../cpp
+        working-directory: ./rust

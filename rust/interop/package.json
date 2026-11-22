@@ -1,0 +1,9 @@
+{
+  "name": "opaque-interop-server",
+  "private": true,
+  "type": "module",
+  "description": "Drives @serenity-kit/opaque so the Rust interop tests run against the real server library.",
+  "dependencies": {
+    "@serenity-kit/opaque": "1.1.0"
+  }
+}
